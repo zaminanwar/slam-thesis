@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: experiment-runner
+Version: 0.1.0
+Summary: Experiment orchestration: dataset recording, evaluation scripts, batch runner
+Maintainer: User
+Maintainer-email: user@example.com
+License: MIT

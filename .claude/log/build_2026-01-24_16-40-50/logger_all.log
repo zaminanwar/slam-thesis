@@ -1,0 +1,192 @@
+[0.180s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build', '--build-base', '/home/zaminanwar/thesis/ros2_ws/build', '--install-base', '/home/zaminanwar/thesis/ros2_ws/install', '--base-paths', '/home/zaminanwar/thesis/ros2_ws/src', '--packages-select', 'rover_sim']
+[0.181s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='/home/zaminanwar/thesis/ros2_ws/build', install_base='/home/zaminanwar/thesis/ros2_ws/install', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=12, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['/home/zaminanwar/thesis/ros2_ws/src'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=['rover_sim'], packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, verb_parser=<colcon_defaults.argument_parser.defaults.DefaultArgumentsDecorator object at 0x781470e6bd10>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x781470fc4740>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x781470fc4740>>)
+[0.232s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.232s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.232s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.232s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.232s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.232s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/zaminanwar/thesis/ros2_ws/src'
+[0.232s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src) by extensions ['ignore', 'ignore_ament_install']
+[0.233s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src) by extension 'ignore'
+[0.233s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src) by extension 'ignore_ament_install'
+[0.233s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src) by extensions ['colcon_pkg']
+[0.233s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src) by extension 'colcon_pkg'
+[0.233s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src) by extensions ['colcon_meta']
+[0.233s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src) by extension 'colcon_meta'
+[0.233s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src) by extensions ['ros']
+[0.233s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src) by extension 'ros'
+[0.266s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src) by extensions ['cmake', 'python']
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src) by extension 'cmake'
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src) by extension 'python'
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src) by extensions ['python_setup_py']
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src) by extension 'python_setup_py'
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis) by extensions ['ignore', 'ignore_ament_install']
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis) by extension 'ignore'
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis) by extension 'ignore_ament_install'
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis) by extensions ['colcon_pkg']
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis) by extension 'colcon_pkg'
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis) by extensions ['colcon_meta']
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis) by extension 'colcon_meta'
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis) by extensions ['ros']
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis) by extension 'ros'
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis) by extensions ['cmake', 'python']
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis) by extension 'cmake'
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis) by extension 'python'
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis) by extensions ['python_setup_py']
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis) by extension 'python_setup_py'
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/experiment_runner) by extensions ['ignore', 'ignore_ament_install']
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/experiment_runner) by extension 'ignore'
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/experiment_runner) by extension 'ignore_ament_install'
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/experiment_runner) by extensions ['colcon_pkg']
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/experiment_runner) by extension 'colcon_pkg'
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/experiment_runner) by extensions ['colcon_meta']
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/experiment_runner) by extension 'colcon_meta'
+[0.269s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/experiment_runner) by extensions ['ros']
+[0.269s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/experiment_runner) by extension 'ros'
+[0.272s] DEBUG:colcon.colcon_core.package_identification:Package '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/experiment_runner' with type 'ros.ament_python' and name 'experiment_runner'
+[0.272s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/gt_publisher) by extensions ['ignore', 'ignore_ament_install']
+[0.272s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/gt_publisher) by extension 'ignore'
+[0.272s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/gt_publisher) by extension 'ignore_ament_install'
+[0.272s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/gt_publisher) by extensions ['colcon_pkg']
+[0.272s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/gt_publisher) by extension 'colcon_pkg'
+[0.273s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/gt_publisher) by extensions ['colcon_meta']
+[0.273s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/gt_publisher) by extension 'colcon_meta'
+[0.273s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/gt_publisher) by extensions ['ros']
+[0.273s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/gt_publisher) by extension 'ros'
+[0.274s] DEBUG:colcon.colcon_core.package_identification:Package '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/gt_publisher' with type 'ros.ament_python' and name 'gt_publisher'
+[0.274s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_control) by extensions ['ignore', 'ignore_ament_install']
+[0.274s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_control) by extension 'ignore'
+[0.274s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_control) by extension 'ignore_ament_install'
+[0.274s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_control) by extensions ['colcon_pkg']
+[0.274s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_control) by extension 'colcon_pkg'
+[0.274s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_control) by extensions ['colcon_meta']
+[0.274s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_control) by extension 'colcon_meta'
+[0.274s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_control) by extensions ['ros']
+[0.274s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_control) by extension 'ros'
+[0.275s] DEBUG:colcon.colcon_core.package_identification:Package '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_control' with type 'ros.ament_python' and name 'rover_control'
+[0.275s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_description) by extensions ['ignore', 'ignore_ament_install']
+[0.275s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_description) by extension 'ignore'
+[0.275s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_description) by extension 'ignore_ament_install'
+[0.275s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_description) by extensions ['colcon_pkg']
+[0.275s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_description) by extension 'colcon_pkg'
+[0.276s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_description) by extensions ['colcon_meta']
+[0.276s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_description) by extension 'colcon_meta'
+[0.276s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_description) by extensions ['ros']
+[0.276s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_description) by extension 'ros'
+[0.276s] DEBUG:colcon.colcon_core.package_identification:Package '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_description' with type 'ros.ament_cmake' and name 'rover_description'
+[0.277s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_sim) by extensions ['ignore', 'ignore_ament_install']
+[0.277s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_sim) by extension 'ignore'
+[0.277s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_sim) by extension 'ignore_ament_install'
+[0.277s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_sim) by extensions ['colcon_pkg']
+[0.277s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_sim) by extension 'colcon_pkg'
+[0.277s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_sim) by extensions ['colcon_meta']
+[0.277s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_sim) by extension 'colcon_meta'
+[0.277s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_sim) by extensions ['ros']
+[0.278s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_sim) by extension 'ros'
+[0.278s] DEBUG:colcon.colcon_core.package_identification:Package '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_sim' with type 'ros.ament_cmake' and name 'rover_sim'
+[0.279s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/slam_launch) by extensions ['ignore', 'ignore_ament_install']
+[0.279s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/slam_launch) by extension 'ignore'
+[0.279s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/slam_launch) by extension 'ignore_ament_install'
+[0.279s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/slam_launch) by extensions ['colcon_pkg']
+[0.279s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/slam_launch) by extension 'colcon_pkg'
+[0.279s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/slam_launch) by extensions ['colcon_meta']
+[0.279s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/slam_launch) by extension 'colcon_meta'
+[0.279s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/slam_launch) by extensions ['ros']
+[0.279s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/slam_launch) by extension 'ros'
+[0.279s] DEBUG:colcon.colcon_core.package_identification:Package '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/slam_launch' with type 'ros.ament_cmake' and name 'slam_launch'
+[0.280s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/traj_exporter) by extensions ['ignore', 'ignore_ament_install']
+[0.280s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/traj_exporter) by extension 'ignore'
+[0.280s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/traj_exporter) by extension 'ignore_ament_install'
+[0.280s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/traj_exporter) by extensions ['colcon_pkg']
+[0.280s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/traj_exporter) by extension 'colcon_pkg'
+[0.280s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/traj_exporter) by extensions ['colcon_meta']
+[0.280s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/traj_exporter) by extension 'colcon_meta'
+[0.280s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/traj_exporter) by extensions ['ros']
+[0.280s] Level 1:colcon.colcon_core.package_identification:_identify(/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/traj_exporter) by extension 'ros'
+[0.281s] DEBUG:colcon.colcon_core.package_identification:Package '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/traj_exporter' with type 'ros.ament_python' and name 'traj_exporter'
+[0.281s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.306s] INFO:colcon.colcon_core.package_selection:Skipping not selected package 'gt_publisher' in '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/gt_publisher'
+[0.307s] INFO:colcon.colcon_core.package_selection:Skipping not selected package 'rover_control' in '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_control'
+[0.307s] INFO:colcon.colcon_core.package_selection:Skipping not selected package 'rover_description' in '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_description'
+[0.307s] INFO:colcon.colcon_core.package_selection:Skipping not selected package 'slam_launch' in '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/slam_launch'
+[0.307s] INFO:colcon.colcon_core.package_selection:Skipping not selected package 'traj_exporter' in '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/traj_exporter'
+[0.307s] INFO:colcon.colcon_core.package_selection:Skipping not selected package 'experiment_runner' in '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/experiment_runner'
+[0.307s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[0.307s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[0.311s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 323 installed packages in /opt/ros/jazzy
+[0.313s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[0.378s] Level 5:colcon.colcon_core.verb:set package 'rover_sim' build argument 'cmake_args' from command line to 'None'
+[0.379s] Level 5:colcon.colcon_core.verb:set package 'rover_sim' build argument 'cmake_target' from command line to 'None'
+[0.379s] Level 5:colcon.colcon_core.verb:set package 'rover_sim' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.379s] Level 5:colcon.colcon_core.verb:set package 'rover_sim' build argument 'cmake_clean_cache' from command line to 'False'
+[0.379s] Level 5:colcon.colcon_core.verb:set package 'rover_sim' build argument 'cmake_clean_first' from command line to 'False'
+[0.379s] Level 5:colcon.colcon_core.verb:set package 'rover_sim' build argument 'cmake_force_configure' from command line to 'False'
+[0.379s] Level 5:colcon.colcon_core.verb:set package 'rover_sim' build argument 'ament_cmake_args' from command line to 'None'
+[0.379s] Level 5:colcon.colcon_core.verb:set package 'rover_sim' build argument 'catkin_cmake_args' from command line to 'None'
+[0.379s] Level 5:colcon.colcon_core.verb:set package 'rover_sim' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.379s] DEBUG:colcon.colcon_core.verb:Building package 'rover_sim' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/zaminanwar/thesis/ros2_ws/build/rover_sim', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/zaminanwar/thesis/ros2_ws/install/rover_sim', 'merge_install': False, 'path': '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_sim', 'symlink_install': False, 'test_result_base': None}
+[0.379s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.380s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.381s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_sim' with build type 'ament_cmake'
+[0.381s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_sim'
+[0.383s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.384s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.384s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.412s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/zaminanwar/thesis/ros2_ws/build/rover_sim': AMENT_PREFIX_PATH=/home/zaminanwar/thesis/ros2_ws/install/rover_description:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/zaminanwar/thesis/ros2_ws/install/rover_description:/opt/ros/jazzy/opt/gz_sim_vendor:/opt/ros/jazzy/opt/gz_sensors_vendor:/opt/ros/jazzy/opt/gz_physics_vendor:/opt/ros/jazzy/opt/sdformat_vendor:/opt/ros/jazzy/opt/gz_gui_vendor:/opt/ros/jazzy/opt/gz_transport_vendor:/opt/ros/jazzy/opt/gz_rendering_vendor:/opt/ros/jazzy/opt/gz_plugin_vendor:/opt/ros/jazzy/opt/gz_fuel_tools_vendor:/opt/ros/jazzy/opt/gz_msgs_vendor:/opt/ros/jazzy/opt/gz_common_vendor:/opt/ros/jazzy/opt/gz_math_vendor:/opt/ros/jazzy/opt/gz_utils_vendor:/opt/ros/jazzy/opt/gz_tools_vendor:/opt/ros/jazzy/opt/gz_ogre_next_vendor:/opt/ros/jazzy/opt/gz_dartsim_vendor:/opt/ros/jazzy/opt/gz_cmake_vendor:/opt/ros/jazzy /usr/bin/cmake --build /home/zaminanwar/thesis/ros2_ws/build/rover_sim -- -j12 -l12
+[0.491s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/zaminanwar/thesis/ros2_ws/build/rover_sim' returned '0': AMENT_PREFIX_PATH=/home/zaminanwar/thesis/ros2_ws/install/rover_description:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/zaminanwar/thesis/ros2_ws/install/rover_description:/opt/ros/jazzy/opt/gz_sim_vendor:/opt/ros/jazzy/opt/gz_sensors_vendor:/opt/ros/jazzy/opt/gz_physics_vendor:/opt/ros/jazzy/opt/sdformat_vendor:/opt/ros/jazzy/opt/gz_gui_vendor:/opt/ros/jazzy/opt/gz_transport_vendor:/opt/ros/jazzy/opt/gz_rendering_vendor:/opt/ros/jazzy/opt/gz_plugin_vendor:/opt/ros/jazzy/opt/gz_fuel_tools_vendor:/opt/ros/jazzy/opt/gz_msgs_vendor:/opt/ros/jazzy/opt/gz_common_vendor:/opt/ros/jazzy/opt/gz_math_vendor:/opt/ros/jazzy/opt/gz_utils_vendor:/opt/ros/jazzy/opt/gz_tools_vendor:/opt/ros/jazzy/opt/gz_ogre_next_vendor:/opt/ros/jazzy/opt/gz_dartsim_vendor:/opt/ros/jazzy/opt/gz_cmake_vendor:/opt/ros/jazzy /usr/bin/cmake --build /home/zaminanwar/thesis/ros2_ws/build/rover_sim -- -j12 -l12
+[0.509s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/zaminanwar/thesis/ros2_ws/build/rover_sim': AMENT_PREFIX_PATH=/home/zaminanwar/thesis/ros2_ws/install/rover_description:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/zaminanwar/thesis/ros2_ws/install/rover_description:/opt/ros/jazzy/opt/gz_sim_vendor:/opt/ros/jazzy/opt/gz_sensors_vendor:/opt/ros/jazzy/opt/gz_physics_vendor:/opt/ros/jazzy/opt/sdformat_vendor:/opt/ros/jazzy/opt/gz_gui_vendor:/opt/ros/jazzy/opt/gz_transport_vendor:/opt/ros/jazzy/opt/gz_rendering_vendor:/opt/ros/jazzy/opt/gz_plugin_vendor:/opt/ros/jazzy/opt/gz_fuel_tools_vendor:/opt/ros/jazzy/opt/gz_msgs_vendor:/opt/ros/jazzy/opt/gz_common_vendor:/opt/ros/jazzy/opt/gz_math_vendor:/opt/ros/jazzy/opt/gz_utils_vendor:/opt/ros/jazzy/opt/gz_tools_vendor:/opt/ros/jazzy/opt/gz_ogre_next_vendor:/opt/ros/jazzy/opt/gz_dartsim_vendor:/opt/ros/jazzy/opt/gz_cmake_vendor:/opt/ros/jazzy /usr/bin/cmake --install /home/zaminanwar/thesis/ros2_ws/build/rover_sim
+[0.533s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(rover_sim)
+[0.534s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/zaminanwar/thesis/ros2_ws/build/rover_sim' returned '0': AMENT_PREFIX_PATH=/home/zaminanwar/thesis/ros2_ws/install/rover_description:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/zaminanwar/thesis/ros2_ws/install/rover_description:/opt/ros/jazzy/opt/gz_sim_vendor:/opt/ros/jazzy/opt/gz_sensors_vendor:/opt/ros/jazzy/opt/gz_physics_vendor:/opt/ros/jazzy/opt/sdformat_vendor:/opt/ros/jazzy/opt/gz_gui_vendor:/opt/ros/jazzy/opt/gz_transport_vendor:/opt/ros/jazzy/opt/gz_rendering_vendor:/opt/ros/jazzy/opt/gz_plugin_vendor:/opt/ros/jazzy/opt/gz_fuel_tools_vendor:/opt/ros/jazzy/opt/gz_msgs_vendor:/opt/ros/jazzy/opt/gz_common_vendor:/opt/ros/jazzy/opt/gz_math_vendor:/opt/ros/jazzy/opt/gz_utils_vendor:/opt/ros/jazzy/opt/gz_tools_vendor:/opt/ros/jazzy/opt/gz_ogre_next_vendor:/opt/ros/jazzy/opt/gz_dartsim_vendor:/opt/ros/jazzy/opt/gz_cmake_vendor:/opt/ros/jazzy /usr/bin/cmake --install /home/zaminanwar/thesis/ros2_ws/build/rover_sim
+[0.536s] Level 1:colcon.colcon_core.environment:checking '/home/zaminanwar/thesis/ros2_ws/install/rover_sim' for CMake module files
+[0.537s] Level 1:colcon.colcon_core.environment:checking '/home/zaminanwar/thesis/ros2_ws/install/rover_sim' for CMake config files
+[0.537s] Level 1:colcon.colcon_core.shell:create_environment_hook('rover_sim', 'cmake_prefix_path')
+[0.537s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/hook/cmake_prefix_path.ps1'
+[0.538s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/hook/cmake_prefix_path.dsv'
+[0.538s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/hook/cmake_prefix_path.sh'
+[0.540s] Level 1:colcon.colcon_core.environment:checking '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/bin'
+[0.540s] Level 1:colcon.colcon_core.environment:checking '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/lib/pkgconfig/rover_sim.pc'
+[0.540s] Level 1:colcon.colcon_core.environment:checking '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/lib/python3.12/site-packages'
+[0.540s] Level 1:colcon.colcon_core.environment:checking '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/bin'
+[0.541s] INFO:colcon.colcon_core.shell:Creating package script '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/package.ps1'
+[0.542s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/package.dsv'
+[0.542s] INFO:colcon.colcon_core.shell:Creating package script '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/package.sh'
+[0.543s] INFO:colcon.colcon_core.shell:Creating package script '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/package.bash'
+[0.544s] INFO:colcon.colcon_core.shell:Creating package script '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/package.zsh'
+[0.544s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/colcon-core/packages/rover_sim)
+[0.545s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(rover_sim)
+[0.545s] Level 1:colcon.colcon_core.environment:checking '/home/zaminanwar/thesis/ros2_ws/install/rover_sim' for CMake module files
+[0.546s] Level 1:colcon.colcon_core.environment:checking '/home/zaminanwar/thesis/ros2_ws/install/rover_sim' for CMake config files
+[0.547s] Level 1:colcon.colcon_core.shell:create_environment_hook('rover_sim', 'cmake_prefix_path')
+[0.547s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/hook/cmake_prefix_path.ps1'
+[0.548s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/hook/cmake_prefix_path.dsv'
+[0.548s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/hook/cmake_prefix_path.sh'
+[0.549s] Level 1:colcon.colcon_core.environment:checking '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/bin'
+[0.549s] Level 1:colcon.colcon_core.environment:checking '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/lib/pkgconfig/rover_sim.pc'
+[0.549s] Level 1:colcon.colcon_core.environment:checking '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/lib/python3.12/site-packages'
+[0.550s] Level 1:colcon.colcon_core.environment:checking '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/bin'
+[0.550s] INFO:colcon.colcon_core.shell:Creating package script '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/package.ps1'
+[0.550s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/package.dsv'
+[0.551s] INFO:colcon.colcon_core.shell:Creating package script '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/package.sh'
+[0.551s] INFO:colcon.colcon_core.shell:Creating package script '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/package.bash'
+[0.552s] INFO:colcon.colcon_core.shell:Creating package script '/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/package.zsh'
+[0.552s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/colcon-core/packages/rover_sim)
+[0.555s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[0.556s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[0.556s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[0.556s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[0.586s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.notify_send': Could not find 'notify-send'
+[0.586s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[0.586s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[0.586s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[0.588s] DEBUG:colcon.colcon_notification.desktop_notification.notify2:Failed to initialize notify2: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.Notifications was not provided by any .service files
+[0.588s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[0.588s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/zaminanwar/thesis/ros2_ws/install/local_setup.ps1'
+[0.590s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/zaminanwar/thesis/ros2_ws/install/_local_setup_util_ps1.py'
+[0.591s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/zaminanwar/thesis/ros2_ws/install/setup.ps1'
+[0.592s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/zaminanwar/thesis/ros2_ws/install/local_setup.sh'
+[0.593s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/zaminanwar/thesis/ros2_ws/install/_local_setup_util_sh.py'
+[0.593s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/zaminanwar/thesis/ros2_ws/install/setup.sh'
+[0.594s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/zaminanwar/thesis/ros2_ws/install/local_setup.bash'
+[0.595s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/zaminanwar/thesis/ros2_ws/install/setup.bash'
+[0.596s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/zaminanwar/thesis/ros2_ws/install/local_setup.zsh'
+[0.596s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/zaminanwar/thesis/ros2_ws/install/setup.zsh'

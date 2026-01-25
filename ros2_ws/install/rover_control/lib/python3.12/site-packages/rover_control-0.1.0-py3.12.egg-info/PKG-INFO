@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: rover-control
+Version: 0.1.0
+Summary: Trajectory follower and control nodes for the SLAM thesis rover
+Maintainer: User
+Maintainer-email: user@example.com
+License: MIT

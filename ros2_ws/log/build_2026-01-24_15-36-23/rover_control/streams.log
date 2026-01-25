@@ -1,0 +1,39 @@
+[16.875s] Invoking command in '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_control': PYTHONPATH=/home/zaminanwar/thesis/ros2_ws/build/rover_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/zaminanwar/thesis/ros2_ws/install/rover_control/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../../build/rover_control build --build-base /home/zaminanwar/thesis/ros2_ws/build/rover_control/build install --record /home/zaminanwar/thesis/ros2_ws/build/rover_control/install.log --single-version-externally-managed install_data
+[17.108s] running egg_info
+[17.108s] creating ../../../build/rover_control/rover_control.egg-info
+[17.125s] writing ../../../build/rover_control/rover_control.egg-info/PKG-INFO
+[17.126s] writing dependency_links to ../../../build/rover_control/rover_control.egg-info/dependency_links.txt
+[17.126s] writing entry points to ../../../build/rover_control/rover_control.egg-info/entry_points.txt
+[17.126s] writing requirements to ../../../build/rover_control/rover_control.egg-info/requires.txt
+[17.126s] writing top-level names to ../../../build/rover_control/rover_control.egg-info/top_level.txt
+[17.126s] writing manifest file '../../../build/rover_control/rover_control.egg-info/SOURCES.txt'
+[17.159s] reading manifest file '../../../build/rover_control/rover_control.egg-info/SOURCES.txt'
+[17.160s] writing manifest file '../../../build/rover_control/rover_control.egg-info/SOURCES.txt'
+[17.160s] running build
+[17.160s] running build_py
+[17.160s] creating /home/zaminanwar/thesis/ros2_ws/build/rover_control/build
+[17.161s] creating /home/zaminanwar/thesis/ros2_ws/build/rover_control/build/lib
+[17.161s] creating /home/zaminanwar/thesis/ros2_ws/build/rover_control/build/lib/rover_control
+[17.199s] copying rover_control/__init__.py -> /home/zaminanwar/thesis/ros2_ws/build/rover_control/build/lib/rover_control
+[17.273s] copying rover_control/trajectory_follower.py -> /home/zaminanwar/thesis/ros2_ws/build/rover_control/build/lib/rover_control
+[17.281s] running install
+[17.285s] running install_lib
+[17.304s] creating /home/zaminanwar/thesis/ros2_ws/install/rover_control/lib/python3.12/site-packages/rover_control
+[17.305s] copying /home/zaminanwar/thesis/ros2_ws/build/rover_control/build/lib/rover_control/__init__.py -> /home/zaminanwar/thesis/ros2_ws/install/rover_control/lib/python3.12/site-packages/rover_control
+[17.305s] copying /home/zaminanwar/thesis/ros2_ws/build/rover_control/build/lib/rover_control/trajectory_follower.py -> /home/zaminanwar/thesis/ros2_ws/install/rover_control/lib/python3.12/site-packages/rover_control
+[17.306s] byte-compiling /home/zaminanwar/thesis/ros2_ws/install/rover_control/lib/python3.12/site-packages/rover_control/__init__.py to __init__.cpython-312.pyc
+[17.306s] byte-compiling /home/zaminanwar/thesis/ros2_ws/install/rover_control/lib/python3.12/site-packages/rover_control/trajectory_follower.py to trajectory_follower.cpython-312.pyc
+[17.306s] running install_data
+[17.307s] creating /home/zaminanwar/thesis/ros2_ws/install/rover_control/share/ament_index
+[17.307s] creating /home/zaminanwar/thesis/ros2_ws/install/rover_control/share/ament_index/resource_index
+[17.307s] creating /home/zaminanwar/thesis/ros2_ws/install/rover_control/share/ament_index/resource_index/packages
+[17.308s] copying resource/rover_control -> /home/zaminanwar/thesis/ros2_ws/install/rover_control/share/ament_index/resource_index/packages
+[17.308s] copying package.xml -> /home/zaminanwar/thesis/ros2_ws/install/rover_control/share/rover_control
+[17.320s] creating /home/zaminanwar/thesis/ros2_ws/install/rover_control/share/rover_control/launch
+[17.321s] creating /home/zaminanwar/thesis/ros2_ws/install/rover_control/share/rover_control/config
+[17.321s] running install_egg_info
+[17.339s] Copying ../../../build/rover_control/rover_control.egg-info to /home/zaminanwar/thesis/ros2_ws/install/rover_control/lib/python3.12/site-packages/rover_control-0.1.0-py3.12.egg-info
+[17.340s] running install_scripts
+[17.458s] Installing trajectory_follower script to /home/zaminanwar/thesis/ros2_ws/install/rover_control/lib/rover_control
+[17.460s] writing list of installed files to '/home/zaminanwar/thesis/ros2_ws/build/rover_control/install.log'
+[17.561s] Invoked command in '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_control' returned '0': PYTHONPATH=/home/zaminanwar/thesis/ros2_ws/build/rover_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/zaminanwar/thesis/ros2_ws/install/rover_control/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../../build/rover_control build --build-base /home/zaminanwar/thesis/ros2_ws/build/rover_control/build install --record /home/zaminanwar/thesis/ros2_ws/build/rover_control/install.log --single-version-externally-managed install_data

@@ -1,0 +1,17 @@
+/home/zaminanwar/thesis/ros2_ws/install/slam_launch/share/slam_launch/launch/.gitkeep
+/home/zaminanwar/thesis/ros2_ws/install/slam_launch/share/slam_launch/config/.gitkeep
+/home/zaminanwar/thesis/ros2_ws/install/slam_launch/share/ament_index/resource_index/package_run_dependencies/slam_launch
+/home/zaminanwar/thesis/ros2_ws/install/slam_launch/share/ament_index/resource_index/parent_prefix_path/slam_launch
+/home/zaminanwar/thesis/ros2_ws/install/slam_launch/share/slam_launch/environment/ament_prefix_path.sh
+/home/zaminanwar/thesis/ros2_ws/install/slam_launch/share/slam_launch/environment/ament_prefix_path.dsv
+/home/zaminanwar/thesis/ros2_ws/install/slam_launch/share/slam_launch/environment/path.sh
+/home/zaminanwar/thesis/ros2_ws/install/slam_launch/share/slam_launch/environment/path.dsv
+/home/zaminanwar/thesis/ros2_ws/install/slam_launch/share/slam_launch/local_setup.bash
+/home/zaminanwar/thesis/ros2_ws/install/slam_launch/share/slam_launch/local_setup.sh
+/home/zaminanwar/thesis/ros2_ws/install/slam_launch/share/slam_launch/local_setup.zsh
+/home/zaminanwar/thesis/ros2_ws/install/slam_launch/share/slam_launch/local_setup.dsv
+/home/zaminanwar/thesis/ros2_ws/install/slam_launch/share/slam_launch/package.dsv
+/home/zaminanwar/thesis/ros2_ws/install/slam_launch/share/ament_index/resource_index/packages/slam_launch
+/home/zaminanwar/thesis/ros2_ws/install/slam_launch/share/slam_launch/cmake/slam_launchConfig.cmake
+/home/zaminanwar/thesis/ros2_ws/install/slam_launch/share/slam_launch/cmake/slam_launchConfig-version.cmake
+/home/zaminanwar/thesis/ros2_ws/install/slam_launch/share/slam_launch/package.xml

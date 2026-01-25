@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: traj-exporter
+Version: 0.1.0
+Summary: Trajectory exporter node - exports TF to TUM format files
+Maintainer: User
+Maintainer-email: user@example.com
+License: MIT

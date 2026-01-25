@@ -1,0 +1,114 @@
+[0.000000] (-) TimerEvent: {}
+[0.000138] (-) JobUnselected: {'identifier': 'experiment_runner'}
+[0.000176] (-) JobUnselected: {'identifier': 'gt_publisher'}
+[0.000203] (-) JobUnselected: {'identifier': 'rover_description'}
+[0.000228] (-) JobUnselected: {'identifier': 'rover_sim'}
+[0.000259] (-) JobUnselected: {'identifier': 'slam_launch'}
+[0.000296] (-) JobUnselected: {'identifier': 'traj_exporter'}
+[0.000331] (rover_control) JobQueued: {'identifier': 'rover_control', 'dependencies': OrderedDict()}
+[0.000900] (rover_control) JobStarted: {'identifier': 'rover_control'}
+[0.101393] (-) TimerEvent: {}
+[0.201778] (-) TimerEvent: {}
+[0.302259] (-) TimerEvent: {}
+[0.402757] (-) TimerEvent: {}
+[0.502937] (-) TimerEvent: {}
+[0.603456] (-) TimerEvent: {}
+[0.703755] (-) TimerEvent: {}
+[0.804027] (-) TimerEvent: {}
+[0.904279] (-) TimerEvent: {}
+[1.004675] (-) TimerEvent: {}
+[1.105163] (-) TimerEvent: {}
+[1.205546] (-) TimerEvent: {}
+[1.305918] (-) TimerEvent: {}
+[1.406337] (-) TimerEvent: {}
+[1.506535] (-) TimerEvent: {}
+[1.607088] (-) TimerEvent: {}
+[1.707338] (-) TimerEvent: {}
+[1.807646] (-) TimerEvent: {}
+[1.907927] (-) TimerEvent: {}
+[2.008285] (-) TimerEvent: {}
+[2.108608] (-) TimerEvent: {}
+[2.208998] (-) TimerEvent: {}
+[2.309400] (-) TimerEvent: {}
+[2.409865] (-) TimerEvent: {}
+[2.516426] (-) TimerEvent: {}
+[2.616812] (-) TimerEvent: {}
+[2.717187] (-) TimerEvent: {}
+[2.818482] (-) TimerEvent: {}
+[2.918785] (-) TimerEvent: {}
+[3.023561] (-) TimerEvent: {}
+[3.124257] (-) TimerEvent: {}
+[3.224706] (-) TimerEvent: {}
+[3.325090] (-) TimerEvent: {}
+[3.425492] (-) TimerEvent: {}
+[3.525955] (-) TimerEvent: {}
+[3.626380] (-) TimerEvent: {}
+[3.726845] (-) TimerEvent: {}
+[3.827295] (-) TimerEvent: {}
+[3.927570] (-) TimerEvent: {}
+[4.027820] (-) TimerEvent: {}
+[4.128339] (-) TimerEvent: {}
+[4.228663] (-) TimerEvent: {}
+[4.329011] (-) TimerEvent: {}
+[4.429463] (-) TimerEvent: {}
+[4.529707] (-) TimerEvent: {}
+[4.630185] (-) TimerEvent: {}
+[4.730423] (-) TimerEvent: {}
+[4.830961] (-) TimerEvent: {}
+[4.931561] (-) TimerEvent: {}
+[5.031791] (-) TimerEvent: {}
+[5.132093] (-) TimerEvent: {}
+[5.232294] (-) TimerEvent: {}
+[5.332554] (-) TimerEvent: {}
+[5.432800] (-) TimerEvent: {}
+[5.533164] (-) TimerEvent: {}
+[5.633370] (-) TimerEvent: {}
+[5.733762] (-) TimerEvent: {}
+[5.834007] (-) TimerEvent: {}
+[5.934455] (-) TimerEvent: {}
+[6.034989] (-) TimerEvent: {}
+[6.135275] (-) TimerEvent: {}
+[6.235536] (-) TimerEvent: {}
+[6.335776] (-) TimerEvent: {}
+[6.436042] (-) TimerEvent: {}
+[6.536314] (-) TimerEvent: {}
+[6.636555] (-) TimerEvent: {}
+[6.736887] (-) TimerEvent: {}
+[6.837291] (-) TimerEvent: {}
+[6.937681] (-) TimerEvent: {}
+[7.038084] (-) TimerEvent: {}
+[7.138653] (-) TimerEvent: {}
+[7.239144] (-) TimerEvent: {}
+[7.339395] (-) TimerEvent: {}
+[7.350783] (rover_control) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'egg_info', '--egg-base', '../../../build/rover_control', 'build', '--build-base', '/home/zaminanwar/thesis/ros2_ws/build/rover_control/build', 'install', '--record', '/home/zaminanwar/thesis/ros2_ws/build/rover_control/install.log', '--single-version-externally-managed', 'install_data'], 'cwd': '/home/zaminanwar/thesis/ros2_ws/src/slam_thesis/rover_control', 'env': {'VSCODE_CWD': '/mnt/c/Users/zamin/AppData/Local/Programs/cursor', 'VSCODE_ESM_ENTRYPOINT': 'vs/workbench/api/node/extensionHostProcess', 'GZ_SIM_RESOURCE_PATH': '/opt/ros/jazzy/share', 'USER': 'zaminanwar', 'CLAUDE_CODE_ENTRYPOINT': 'claude-vscode', 'VSCODE_NLS_CONFIG': '{"userLocale":"en","osLocale":"en","resolvedLanguage":"en","defaultMessagesFile":"/home/zaminanwar/.cursor-server/bin/dc8361355d709f306d5159635a677a571b277bc0/out/nls.messages.json","locale":"en","availableLanguages":{}}', 'GZ_CONFIG_PATH': '/opt/ros/jazzy/opt/gz_sim_vendor/share/gz:/opt/ros/jazzy/opt/sdformat_vendor/share/gz:/opt/ros/jazzy/opt/gz_gui_vendor/share/gz:/opt/ros/jazzy/opt/gz_transport_vendor/share/gz:/opt/ros/jazzy/opt/gz_rendering_vendor/share/gz:/opt/ros/jazzy/opt/gz_plugin_vendor/share/gz:/opt/ros/jazzy/opt/gz_fuel_tools_vendor/share/gz:/opt/ros/jazzy/opt/gz_msgs_vendor/share/gz:/opt/ros/jazzy/opt/gz_common_vendor/share/gz', 'GIT_EDITOR': 'true', 'VSCODE_HANDLES_UNCAUGHT_ERRORS': 'true', 'CLAUDE_AGENT_SDK_VERSION': '0.2.19', 'SHLVL': '2', 'LD_LIBRARY_PATH': '/opt/ros/jazzy/opt/gz_sim_vendor/lib:/opt/ros/jazzy/opt/gz_sensors_vendor/lib:/opt/ros/jazzy/opt/gz_physics_vendor/lib:/opt/ros/jazzy/opt/sdformat_vendor/lib:/opt/ros/jazzy/opt/rviz_ogre_vendor/lib:/opt/ros/jazzy/lib/x86_64-linux-gnu:/opt/ros/jazzy/opt/gz_gui_vendor/lib:/opt/ros/jazzy/opt/gz_transport_vendor/lib:/opt/ros/jazzy/opt/gz_rendering_vendor/lib:/opt/ros/jazzy/opt/gz_plugin_vendor/lib:/opt/ros/jazzy/opt/gz_fuel_tools_vendor/lib:/opt/ros/jazzy/opt/gz_msgs_vendor/lib:/opt/ros/jazzy/opt/gz_common_vendor/lib:/opt/ros/jazzy/opt/gz_math_vendor/lib:/opt/ros/jazzy/opt/gz_utils_vendor/lib:/opt/ros/jazzy/opt/gz_tools_vendor/lib:/opt/ros/jazzy/opt/gz_ogre_next_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib:/opt/ros/jazzy/opt/gz_cmake_vendor/lib:/opt/ros/jazzy/lib', 'HOME': '/home/zaminanwar', 'OLDPWD': '/home/zaminanwar/thesis', 'VSCODE_IPC_HOOK_CLI': '/run/user/1000/vscode-ipc-303156a6-b55e-46b7-8c13-ac7487bd29f5.sock', 'ROS_PYTHON_VERSION': '3', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'WSL_DISTRO_NAME': 'Ubuntu', 'WAYLAND_DISPLAY': 'wayland-0', 'ROS_DISTRO': 'jazzy', 'LOGNAME': 'zaminanwar', 'NAME': 'DESKTOP-AFDN506', 'WSL_INTEROP': '/run/WSL/13636_interop', 'VSCODE_HANDLES_SIGPIPE': 'true', 'PULSE_SERVER': 'unix:/mnt/wslg/PulseServer', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'xterm-256color', 'EVERYSPHERE_RIPGREP_PATH': '/home/zaminanwar/.cursor-server/bin/dc8361355d709f306d5159635a677a571b277bc0/resources/helpers/rg', 'OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE': 'delta', 'PATH': '/opt/ros/jazzy/opt/gz_msgs_vendor/bin:/opt/ros/jazzy/opt/gz_tools_vendor/bin:/opt/ros/jazzy/opt/gz_ogre_next_vendor/bin:/opt/ros/jazzy/bin:/home/zaminanwar/.cursor-server/bin/dc8361355d709f306d5159635a677a571b277bc0/bin/remote-cli:/home/zaminanwar/.cursor-server/bin/dc8361355d709f306d5159635a677a571b277bc0/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/nodejs/:/mnt/c/Users/zamin/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/zamin/AppData/Local/Programs/cursor/resources/app/bin:/mnt/c/Users/zamin/.local/bin:/mnt/c/Users/zamin/AppData/Roaming/npm:/mnt/c/Users/zamin/AppData/Local/Python/bin', 'COREPACK_ENABLE_AUTO_PIN': '0', 'XDG_RUNTIME_DIR': '/run/user/1000/', 'DISPLAY': ':0', 'NoDefaultCurrentDirectoryInExePath': '1', 'LANG': 'C.UTF-8', 'AMENT_PREFIX_PATH': '/opt/ros/jazzy', 'SHELL': '/bin/bash', 'ELECTRON_RUN_AS_NODE': '1', 'CLAUDE_CODE_ENABLE_SDK_FILE_CHECKPOINTING': 'true', 'CLAUDECODE': '1', 'ROS_AUTOMATIC_DISCOVERY_RANGE': 'SUBNET', 'PWD': '/home/zaminanwar/thesis/ros2_ws/build/rover_control', 'XDG_DATA_DIRS': '/usr/local/share:/usr/share:/var/lib/snapd/desktop', 'PYTHONPATH': '/home/zaminanwar/thesis/ros2_ws/build/rover_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/zaminanwar/thesis/ros2_ws/install/rover_control/lib/python3.12/site-packages:/opt/ros/jazzy/lib/python3.12/site-packages', 'COLCON': '1', 'WSL2_GUI_APPS_ENABLED': '1', 'HOSTTYPE': 'x86_64', 'CMAKE_PREFIX_PATH': '/opt/ros/jazzy/opt/gz_sim_vendor:/opt/ros/jazzy/opt/gz_sensors_vendor:/opt/ros/jazzy/opt/gz_physics_vendor:/opt/ros/jazzy/opt/sdformat_vendor:/opt/ros/jazzy/opt/gz_gui_vendor:/opt/ros/jazzy/opt/gz_transport_vendor:/opt/ros/jazzy/opt/gz_rendering_vendor:/opt/ros/jazzy/opt/gz_plugin_vendor:/opt/ros/jazzy/opt/gz_fuel_tools_vendor:/opt/ros/jazzy/opt/gz_msgs_vendor:/opt/ros/jazzy/opt/gz_common_vendor:/opt/ros/jazzy/opt/gz_math_vendor:/opt/ros/jazzy/opt/gz_utils_vendor:/opt/ros/jazzy/opt/gz_tools_vendor:/opt/ros/jazzy/opt/gz_ogre_next_vendor:/opt/ros/jazzy/opt/gz_dartsim_vendor:/opt/ros/jazzy/opt/gz_cmake_vendor', 'WSLENV': ''}, 'shell': False}
+[7.439507] (-) TimerEvent: {}
+[7.539915] (-) TimerEvent: {}
+[7.595097] (rover_control) StdoutLine: {'line': b'running egg_info\n'}
+[7.610702] (rover_control) StdoutLine: {'line': b'writing ../../../build/rover_control/rover_control.egg-info/PKG-INFO\n'}
+[7.610945] (rover_control) StdoutLine: {'line': b'writing dependency_links to ../../../build/rover_control/rover_control.egg-info/dependency_links.txt\n'}
+[7.611112] (rover_control) StdoutLine: {'line': b'writing entry points to ../../../build/rover_control/rover_control.egg-info/entry_points.txt\n'}
+[7.611306] (rover_control) StdoutLine: {'line': b'writing requirements to ../../../build/rover_control/rover_control.egg-info/requires.txt\n'}
+[7.611560] (rover_control) StdoutLine: {'line': b'writing top-level names to ../../../build/rover_control/rover_control.egg-info/top_level.txt\n'}
+[7.640251] (-) TimerEvent: {}
+[7.646091] (rover_control) StdoutLine: {'line': b"reading manifest file '../../../build/rover_control/rover_control.egg-info/SOURCES.txt'\n"}
+[7.670317] (rover_control) StdoutLine: {'line': b"writing manifest file '../../../build/rover_control/rover_control.egg-info/SOURCES.txt'\n"}
+[7.670651] (rover_control) StdoutLine: {'line': b'running build\n'}
+[7.670778] (rover_control) StdoutLine: {'line': b'running build_py\n'}
+[7.670984] (rover_control) StdoutLine: {'line': b'copying rover_control/trajectory_follower.py -> /home/zaminanwar/thesis/ros2_ws/build/rover_control/build/lib/rover_control\n'}
+[7.672625] (rover_control) StdoutLine: {'line': b'running install\n'}
+[7.677643] (rover_control) StdoutLine: {'line': b'running install_lib\n'}
+[7.703101] (rover_control) StdoutLine: {'line': b'copying /home/zaminanwar/thesis/ros2_ws/build/rover_control/build/lib/rover_control/trajectory_follower.py -> /home/zaminanwar/thesis/ros2_ws/install/rover_control/lib/python3.12/site-packages/rover_control\n'}
+[7.703911] (rover_control) StdoutLine: {'line': b'byte-compiling /home/zaminanwar/thesis/ros2_ws/install/rover_control/lib/python3.12/site-packages/rover_control/trajectory_follower.py to trajectory_follower.cpython-312.pyc\n'}
+[7.705964] (rover_control) StdoutLine: {'line': b'running install_data\n'}
+[7.706118] (rover_control) StdoutLine: {'line': b'copying launch/follow_trajectory.launch.py -> /home/zaminanwar/thesis/ros2_ws/install/rover_control/share/rover_control/launch\n'}
+[7.706293] (rover_control) StdoutLine: {'line': b'running install_egg_info\n'}
+[7.727386] (rover_control) StdoutLine: {'line': b"removing '/home/zaminanwar/thesis/ros2_ws/install/rover_control/lib/python3.12/site-packages/rover_control-0.1.0-py3.12.egg-info' (and everything under it)\n"}
+[7.727819] (rover_control) StdoutLine: {'line': b'Copying ../../../build/rover_control/rover_control.egg-info to /home/zaminanwar/thesis/ros2_ws/install/rover_control/lib/python3.12/site-packages/rover_control-0.1.0-py3.12.egg-info\n'}
+[7.740445] (-) TimerEvent: {}
+[7.741751] (rover_control) StdoutLine: {'line': b'running install_scripts\n'}
+[7.840752] (-) TimerEvent: {}
+[7.873794] (rover_control) StdoutLine: {'line': b'Installing trajectory_follower script to /home/zaminanwar/thesis/ros2_ws/install/rover_control/lib/rover_control\n'}
+[7.874115] (rover_control) StdoutLine: {'line': b"writing list of installed files to '/home/zaminanwar/thesis/ros2_ws/build/rover_control/install.log'\n"}
+[7.896378] (rover_control) CommandEnded: {'returncode': 0}
+[7.905239] (rover_control) JobEnded: {'identifier': 'rover_control', 'rc': 0}
+[7.906090] (-) EventReactorShutdown: {}

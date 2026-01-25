@@ -1,0 +1,31 @@
+[0.138s] Invoking command in '/home/zaminanwar/thesis/ros2_ws/build/rover_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /usr/bin/cmake --build /home/zaminanwar/thesis/ros2_ws/build/rover_description -- -j12 -l12
+[1.603s] Invoked command in '/home/zaminanwar/thesis/ros2_ws/build/rover_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /usr/bin/cmake --build /home/zaminanwar/thesis/ros2_ws/build/rover_description -- -j12 -l12
+[1.633s] Invoking command in '/home/zaminanwar/thesis/ros2_ws/build/rover_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /usr/bin/cmake --install /home/zaminanwar/thesis/ros2_ws/build/rover_description
+[1.671s] -- Install configuration: ""
+[1.684s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/urdf
+[1.684s] -- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/urdf/rover.urdf.xacro
+[1.685s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/urdf/.gitkeep
+[1.685s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/rviz
+[1.685s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/rviz/.gitkeep
+[1.685s] -- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/rviz/rover.rviz
+[1.686s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/launch
+[1.686s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/launch/.gitkeep
+[1.686s] -- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/launch/display.launch.py
+[1.686s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/meshes
+[1.702s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/meshes/.gitkeep
+[1.703s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/ament_index/resource_index/package_run_dependencies/rover_description
+[1.703s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/ament_index/resource_index/parent_prefix_path/rover_description
+[1.703s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/environment/ament_prefix_path.sh
+[1.703s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/environment/ament_prefix_path.dsv
+[1.703s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/environment/path.sh
+[1.703s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/environment/path.dsv
+[1.703s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/local_setup.bash
+[1.704s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/local_setup.sh
+[1.704s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/local_setup.zsh
+[1.704s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/local_setup.dsv
+[1.704s] -- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/package.dsv
+[1.715s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/ament_index/resource_index/packages/rover_description
+[1.715s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/cmake/rover_descriptionConfig.cmake
+[1.715s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/cmake/rover_descriptionConfig-version.cmake
+[1.715s] -- Up-to-date: /home/zaminanwar/thesis/ros2_ws/install/rover_description/share/rover_description/package.xml
+[1.734s] Invoked command in '/home/zaminanwar/thesis/ros2_ws/build/rover_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy /usr/bin/cmake --install /home/zaminanwar/thesis/ros2_ws/build/rover_description

@@ -1,0 +1,37 @@
+running egg_info
+creating ../../../build/traj_exporter/traj_exporter.egg-info
+writing ../../../build/traj_exporter/traj_exporter.egg-info/PKG-INFO
+writing dependency_links to ../../../build/traj_exporter/traj_exporter.egg-info/dependency_links.txt
+writing entry points to ../../../build/traj_exporter/traj_exporter.egg-info/entry_points.txt
+writing requirements to ../../../build/traj_exporter/traj_exporter.egg-info/requires.txt
+writing top-level names to ../../../build/traj_exporter/traj_exporter.egg-info/top_level.txt
+writing manifest file '../../../build/traj_exporter/traj_exporter.egg-info/SOURCES.txt'
+reading manifest file '../../../build/traj_exporter/traj_exporter.egg-info/SOURCES.txt'
+writing manifest file '../../../build/traj_exporter/traj_exporter.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/zaminanwar/thesis/ros2_ws/build/traj_exporter/build
+creating /home/zaminanwar/thesis/ros2_ws/build/traj_exporter/build/lib
+creating /home/zaminanwar/thesis/ros2_ws/build/traj_exporter/build/lib/traj_exporter
+copying traj_exporter/traj_exporter_node.py -> /home/zaminanwar/thesis/ros2_ws/build/traj_exporter/build/lib/traj_exporter
+copying traj_exporter/__init__.py -> /home/zaminanwar/thesis/ros2_ws/build/traj_exporter/build/lib/traj_exporter
+running install
+running install_lib
+creating /home/zaminanwar/thesis/ros2_ws/install/traj_exporter/lib/python3.12/site-packages/traj_exporter
+copying /home/zaminanwar/thesis/ros2_ws/build/traj_exporter/build/lib/traj_exporter/traj_exporter_node.py -> /home/zaminanwar/thesis/ros2_ws/install/traj_exporter/lib/python3.12/site-packages/traj_exporter
+copying /home/zaminanwar/thesis/ros2_ws/build/traj_exporter/build/lib/traj_exporter/__init__.py -> /home/zaminanwar/thesis/ros2_ws/install/traj_exporter/lib/python3.12/site-packages/traj_exporter
+byte-compiling /home/zaminanwar/thesis/ros2_ws/install/traj_exporter/lib/python3.12/site-packages/traj_exporter/traj_exporter_node.py to traj_exporter_node.cpython-312.pyc
+byte-compiling /home/zaminanwar/thesis/ros2_ws/install/traj_exporter/lib/python3.12/site-packages/traj_exporter/__init__.py to __init__.cpython-312.pyc
+running install_data
+creating /home/zaminanwar/thesis/ros2_ws/install/traj_exporter/share/ament_index
+creating /home/zaminanwar/thesis/ros2_ws/install/traj_exporter/share/ament_index/resource_index
+creating /home/zaminanwar/thesis/ros2_ws/install/traj_exporter/share/ament_index/resource_index/packages
+copying resource/traj_exporter -> /home/zaminanwar/thesis/ros2_ws/install/traj_exporter/share/ament_index/resource_index/packages
+copying package.xml -> /home/zaminanwar/thesis/ros2_ws/install/traj_exporter/share/traj_exporter
+creating /home/zaminanwar/thesis/ros2_ws/install/traj_exporter/share/traj_exporter/launch
+creating /home/zaminanwar/thesis/ros2_ws/install/traj_exporter/share/traj_exporter/config
+running install_egg_info
+Copying ../../../build/traj_exporter/traj_exporter.egg-info to /home/zaminanwar/thesis/ros2_ws/install/traj_exporter/lib/python3.12/site-packages/traj_exporter-0.1.0-py3.12.egg-info
+running install_scripts
+Installing traj_exporter script to /home/zaminanwar/thesis/ros2_ws/install/traj_exporter/lib/traj_exporter
+writing list of installed files to '/home/zaminanwar/thesis/ros2_ws/build/traj_exporter/install.log'

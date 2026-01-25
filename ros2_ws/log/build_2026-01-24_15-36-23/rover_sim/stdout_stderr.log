@@ -1,0 +1,39 @@
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ament_cmake: 2.5.4 (/opt/ros/jazzy/share/ament_cmake/cmake)
+-- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter 
+-- Configuring done (1.2s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/zaminanwar/thesis/ros2_ws/build/rover_sim
+-- Install configuration: ""
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/launch
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/launch/.gitkeep
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/worlds
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/worlds/.gitkeep
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/config
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/config/.gitkeep
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/ament_index/resource_index/package_run_dependencies/rover_sim
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/ament_index/resource_index/parent_prefix_path/rover_sim
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/environment/ament_prefix_path.sh
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/environment/ament_prefix_path.dsv
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/environment/path.sh
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/environment/path.dsv
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/local_setup.bash
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/local_setup.sh
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/local_setup.zsh
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/local_setup.dsv
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/package.dsv
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/ament_index/resource_index/packages/rover_sim
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/cmake/rover_simConfig.cmake
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/cmake/rover_simConfig-version.cmake
+-- Installing: /home/zaminanwar/thesis/ros2_ws/install/rover_sim/share/rover_sim/package.xml

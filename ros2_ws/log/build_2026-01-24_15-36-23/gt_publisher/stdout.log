@@ -1,0 +1,37 @@
+running egg_info
+creating ../../../build/gt_publisher/gt_publisher.egg-info
+writing ../../../build/gt_publisher/gt_publisher.egg-info/PKG-INFO
+writing dependency_links to ../../../build/gt_publisher/gt_publisher.egg-info/dependency_links.txt
+writing entry points to ../../../build/gt_publisher/gt_publisher.egg-info/entry_points.txt
+writing requirements to ../../../build/gt_publisher/gt_publisher.egg-info/requires.txt
+writing top-level names to ../../../build/gt_publisher/gt_publisher.egg-info/top_level.txt
+writing manifest file '../../../build/gt_publisher/gt_publisher.egg-info/SOURCES.txt'
+reading manifest file '../../../build/gt_publisher/gt_publisher.egg-info/SOURCES.txt'
+writing manifest file '../../../build/gt_publisher/gt_publisher.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/zaminanwar/thesis/ros2_ws/build/gt_publisher/build
+creating /home/zaminanwar/thesis/ros2_ws/build/gt_publisher/build/lib
+creating /home/zaminanwar/thesis/ros2_ws/build/gt_publisher/build/lib/gt_publisher
+copying gt_publisher/__init__.py -> /home/zaminanwar/thesis/ros2_ws/build/gt_publisher/build/lib/gt_publisher
+copying gt_publisher/gt_publisher_node.py -> /home/zaminanwar/thesis/ros2_ws/build/gt_publisher/build/lib/gt_publisher
+running install
+running install_lib
+creating /home/zaminanwar/thesis/ros2_ws/install/gt_publisher/lib/python3.12/site-packages/gt_publisher
+copying /home/zaminanwar/thesis/ros2_ws/build/gt_publisher/build/lib/gt_publisher/__init__.py -> /home/zaminanwar/thesis/ros2_ws/install/gt_publisher/lib/python3.12/site-packages/gt_publisher
+copying /home/zaminanwar/thesis/ros2_ws/build/gt_publisher/build/lib/gt_publisher/gt_publisher_node.py -> /home/zaminanwar/thesis/ros2_ws/install/gt_publisher/lib/python3.12/site-packages/gt_publisher
+byte-compiling /home/zaminanwar/thesis/ros2_ws/install/gt_publisher/lib/python3.12/site-packages/gt_publisher/__init__.py to __init__.cpython-312.pyc
+byte-compiling /home/zaminanwar/thesis/ros2_ws/install/gt_publisher/lib/python3.12/site-packages/gt_publisher/gt_publisher_node.py to gt_publisher_node.cpython-312.pyc
+running install_data
+creating /home/zaminanwar/thesis/ros2_ws/install/gt_publisher/share/ament_index
+creating /home/zaminanwar/thesis/ros2_ws/install/gt_publisher/share/ament_index/resource_index
+creating /home/zaminanwar/thesis/ros2_ws/install/gt_publisher/share/ament_index/resource_index/packages
+copying resource/gt_publisher -> /home/zaminanwar/thesis/ros2_ws/install/gt_publisher/share/ament_index/resource_index/packages
+copying package.xml -> /home/zaminanwar/thesis/ros2_ws/install/gt_publisher/share/gt_publisher
+creating /home/zaminanwar/thesis/ros2_ws/install/gt_publisher/share/gt_publisher/launch
+creating /home/zaminanwar/thesis/ros2_ws/install/gt_publisher/share/gt_publisher/config
+running install_egg_info
+Copying ../../../build/gt_publisher/gt_publisher.egg-info to /home/zaminanwar/thesis/ros2_ws/install/gt_publisher/lib/python3.12/site-packages/gt_publisher-0.1.0-py3.12.egg-info
+running install_scripts
+Installing gt_publisher script to /home/zaminanwar/thesis/ros2_ws/install/gt_publisher/lib/gt_publisher
+writing list of installed files to '/home/zaminanwar/thesis/ros2_ws/build/gt_publisher/install.log'
