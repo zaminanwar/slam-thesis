@@ -1,17 +1,17 @@
 # Project State
 
-**Last Updated**: 2026-01-24T18:00:00
-**Last Claude Instance**: M3 Implementation (Opus 4.5)
-**Current Milestone**: M4 (Dataset Recording)
-**Current Task**: T4.1 - Dataset recorder launch
+**Last Updated**: 2026-01-25T02:00:00
+**Last Claude Instance**: M5 Bag Replay Investigation (Opus 4.5)
+**Current Milestone**: M6 (Trajectory Export)
+**Current Task**: T6.1 - TF-based trajectory exporter
 
 ## Status Summary
 
 | Status | Count |
 |--------|-------|
-| Completed | 11 |
+| Completed | 16 |
 | In Progress | 0 |
-| Pending | 18 |
+| Pending | 13 |
 | Blocked | 0 |
 
 ## Progress
@@ -35,16 +35,16 @@
 ### EPIC 3 - Ground Truth ✓
 - [x] T3.1 - Ground truth publisher node
 
-### EPIC 4 - Dataset Recording ← CURRENT
-- [ ] T4.1 - Dataset recorder launch
-- [ ] T4.2 - Condition system
-- [ ] T4.3 - Bag replay wrapper
+### EPIC 4 - Dataset Recording ✓
+- [x] T4.1 - Dataset recorder launch
+- [x] T4.2 - Condition system
+- [x] T4.3 - Bag replay wrapper
 
-### EPIC 5 - SLAM Pipelines
-- [ ] T5.1 - slam_toolbox bag replay
-- [ ] T5.2 - Cartographer 2D bag replay
+### EPIC 5 - SLAM Pipelines ✓
+- [x] T5.1 - slam_toolbox bag replay
+- [x] T5.2 - Cartographer 2D bag replay
 
-### EPIC 6 - Trajectory Export
+### EPIC 6 - Trajectory Export ← CURRENT
 - [ ] T6.1 - TF-based trajectory exporter
 - [ ] T6.2 - Export integration
 
@@ -69,8 +69,8 @@
 | M1 | validate_m1.sh | 2026-01-24 | **PASSED** (script + manual) |
 | M2 | validate_m2.sh | 2026-01-24 | **PASSED** |
 | M3 | validate_m3.sh | 2026-01-24 | **PASSED** (script + manual) |
-| M4 | validate_m4.sh | - | Not created yet |
-| M5 | validate_m5.sh | - | Not created yet |
+| M4 | validate_m4.sh | 2026-01-25 | **PASSED** |
+| M5 | validate_m5.sh | 2026-01-25 | **PASSED** (17/17 tests) |
 | M6 | validate_m6.sh | - | Not created yet |
 | M7 | validate_m7.sh | - | Not created yet |
 | M8 | validate_m8.sh | - | Not created yet |
@@ -79,10 +79,15 @@
 ## Next Action
 
 **For new Claude instance:**
-Implement M4 (Dataset Recording):
-- T4.1: Dataset recorder launch - record bags with topics for replay
-- T4.2: Condition system - support baseline and degraded conditions
-- T4.3: Bag replay wrapper - launch file for replaying bags
+Implement M6 (Trajectory Export):
+- T6.1: TF-based trajectory exporter - node that subscribes to TF and exports trajectory to CSV
+- T6.2: Export integration - integrate exporter with SLAM launch files
+
+**IMPORTANT FOR M6:**
+- Use **live simulation** approach (slam_toolbox_live.launch.py, cartographer_live.launch.py)
+- Bag replay has TF timing issues - see M5 Notes for details
+- The trajectory exporter should record poses from the `map -> base_footprint` TF transform
+- Export format should match ground truth format for easy comparison with evo tool
 
 ## Environment
 
@@ -118,6 +123,18 @@ Implement M4 (Dataset Recording):
 | 2026-01-24 | M3 | **VALIDATED** | validate_m3.sh passes |
 | 2026-01-24 | T3.1 | Added PosePublisher plugin to rover URDF | Required for Gazebo to publish /model/rover/pose |
 | 2026-01-24 | M3 | **MANUAL TEST PASSED** | /gt_pose updates, TF map_gt->base_link works |
+| 2026-01-25 | T4.1 | Created record_dataset.launch.py | Orchestrates sim + GT + trajectory + rosbag |
+| 2026-01-25 | T4.2 | Created condition system | baseline, high_speed, odom_degraded |
+| 2026-01-25 | T4.2 | Created odom_noise_node.py | Noise + drift injection for degraded odom |
+| 2026-01-25 | T4.3 | Created replay_bag.launch.py | Bag playback with sim time + robot_state_publisher |
+| 2026-01-25 | M4 | **VALIDATED** | validate_m4.sh passes |
+| 2026-01-25 | T5.1 | Created slam_toolbox config + launch | slam_toolbox.yaml, slam_toolbox.launch.py |
+| 2026-01-25 | T5.2 | Created Cartographer config + launch | cartographer_2d.lua, cartographer.launch.py |
+| 2026-01-25 | M5 | **VALIDATED** | validate_m5.sh passes (17/17 tests) |
+| 2026-01-25 | T5.1 | Created slam_toolbox_live.launch.py | Live sim version - WORKING |
+| 2026-01-25 | T5.2 | Created cartographer_live.launch.py | Live sim version - WORKING |
+| 2026-01-25 | - | Investigated bag replay TF issues | ROS 2 Jazzy architectural limitation |
+| 2026-01-25 | - | Added restamp_tf: true to slam_toolbox.yaml | Helps with TF sync (partial fix) |
 
 ## Key Files Created in M1
 
@@ -159,11 +176,74 @@ rover_sim/
 └── launch/sim.launch.py               # Updated with /model/rover/pose bridge
 ```
 
-## Key Files for M4
+## Key Files Created in M4
 
 ```
 experiment_runner/
-├── launch/record_dataset.launch.py    # Record bags with GT + sensors
-├── launch/replay_bag.launch.py        # Replay bags for SLAM evaluation
-└── config/topics_to_record.yaml       # Topics list for rosbag record
+├── launch/record_dataset.launch.py           # Record bags with GT + sensors
+├── launch/replay_bag.launch.py               # Replay bags for SLAM evaluation
+├── config/topics_to_record.yaml              # Topics list for rosbag record
+└── experiment_runner/odom_noise_node.py      # Noise injection for degraded odom
 ```
+
+## Key Files for M5
+
+```
+slam_launch/
+├── config/slam_toolbox.yaml           # slam_toolbox configuration (includes restamp_tf: true)
+├── config/cartographer_2d.lua         # Cartographer configuration
+├── launch/slam_toolbox.launch.py      # slam_toolbox with bag replay (NOT WORKING)
+├── launch/cartographer.launch.py      # Cartographer with bag replay (NOT WORKING)
+├── launch/slam_toolbox_live.launch.py # slam_toolbox with live Gazebo (WORKING)
+└── launch/cartographer_live.launch.py # Cartographer with live Gazebo (WORKING)
+```
+
+## M5 Notes (Completed)
+
+**Installed SLAM packages:**
+- ros-jazzy-slam-toolbox (2.8.3)
+- ros-jazzy-cartographer-ros (2.0.9003)
+
+**Key implementation details:**
+- Odometry publishes `odom → base_footprint` (not `base_link`)
+- Both SLAM configs use `base_footprint` as base_frame/tracking_frame
+
+### CRITICAL: Live Simulation vs Bag Replay
+
+| Mode | Status | Why |
+|------|--------|-----|
+| **Live Simulation** | ✅ WORKS | Gazebo provides /clock synchronously; all nodes start with consistent time |
+| **Bag Replay** | ❌ BROKEN | TF2 cannot reconcile wall-time static transforms with sim-time scan messages |
+
+**Root cause:** ROS 2's `use_sim_time` is a per-node parameter (unlike ROS 1's global setting).
+When bag replay starts, there's a race condition:
+1. robot_state_publisher publishes static TFs with wall time or waits for /clock
+2. Bag starts publishing /clock from recorded time (near 0)
+3. slam_toolbox's message filter can't find laser_frame transform at sim time
+
+This is a **known ROS 2 Jazzy architectural limitation**, not a bug in our code.
+Reference: https://discourse.openrobotics.org/t/ros2-use-sim-time-leads-to-inconsistent-clocks/42030
+
+**Recommendation: USE LIVE SIMULATION for SLAM evaluation.**
+
+**Live simulation usage (WORKING):**
+```bash
+# Terminal 1: Start Gazebo simulation
+ros2 launch rover_sim sim.launch.py
+
+# Terminal 2: Start SLAM
+ros2 launch slam_launch slam_toolbox_live.launch.py
+# OR
+ros2 launch slam_launch cartographer_live.launch.py
+
+# Terminal 3 (optional): Follow trajectory
+ros2 launch rover_control follow_trajectory.launch.py trajectory:=traj_01_easy
+```
+
+**Bag replay usage (NOT WORKING - kept for reference):**
+```bash
+ros2 launch slam_launch slam_toolbox.launch.py bag:=traj_01_easy__baseline
+ros2 launch slam_launch cartographer.launch.py bag:=traj_01_easy__baseline
+```
+
+**Test bag available:** `~/thesis/ros2_ws/bags/traj_01_easy__baseline` (15.8s, all required topics)

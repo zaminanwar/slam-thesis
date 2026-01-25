@@ -1,0 +1,24 @@
+# Topics to record for SLAM evaluation bags
+# These topics are required for:
+# - SLAM replay (/scan, /odom, /tf, /tf_static, /clock)
+# - Ground truth evaluation (/gt_pose)
+# - Trajectory completion detection (/trajectory_done)
+
+topics:
+  # Core sensor data for SLAM
+  - /scan                # LiDAR data (sensor_msgs/LaserScan)
+  - /odom                # Wheel odometry (nav_msgs/Odometry)
+
+  # Ground truth for evaluation
+  - /gt_pose             # Ground truth pose (nav_msgs/Odometry)
+
+  # Transform data
+  - /tf                  # Dynamic transforms (odom->base_link, etc.)
+  - /tf_static           # Static transforms (base_link->laser_frame)
+
+  # Timing
+  - /clock               # Simulation clock for replay
+
+  # Control signals (for debugging/analysis)
+  - /cmd_vel             # Velocity commands (geometry_msgs/Twist)
+  - /trajectory_done     # Trajectory completion signal (std_msgs/Bool)
