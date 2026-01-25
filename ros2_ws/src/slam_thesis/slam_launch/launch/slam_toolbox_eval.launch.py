@@ -67,6 +67,7 @@ def generate_launch_description():
     )
 
     # === Trajectory exporter node ===
+    # Note: GT uses base_footprint_gt to avoid TF conflict with main tree
     traj_exporter_node = Node(
         package='traj_exporter',
         executable='traj_exporter',
@@ -76,7 +77,7 @@ def generate_launch_description():
             'output_dir': output_dir,
             'sample_rate': 20.0,
             'gt_parent_frame': 'map_gt',
-            'gt_child_frame': 'base_footprint',
+            'gt_child_frame': 'base_footprint_gt',
             'est_parent_frame': 'map',
             'est_child_frame': 'base_footprint',
             'use_sim_time': use_sim_time,

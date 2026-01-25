@@ -3,8 +3,11 @@
 Trajectory exporter node for SLAM thesis evaluation.
 
 Samples TF transforms at a configurable rate and writes TUM format trajectory files:
-- gt.tum: Ground truth trajectory (map_gt -> base_footprint)
+- gt.tum: Ground truth trajectory (map_gt -> base_footprint_gt)
 - est.tum: SLAM estimate trajectory (map -> base_footprint)
+
+Note: GT uses base_footprint_gt (NOT base_footprint) to avoid TF tree conflicts
+with the main robot tree where Gazebo publishes odom -> base_footprint.
 
 TUM format: timestamp tx ty tz qx qy qz qw
 """
@@ -13,6 +16,7 @@ import os
 import rclpy
 from rclpy.node import Node
 from rclpy.duration import Duration
+from rclpy.time import Time
 from tf2_ros import Buffer, TransformListener, LookupException, ExtrapolationException
 
 
@@ -23,8 +27,9 @@ class TrajectoryExporter(Node):
         super().__init__('traj_exporter')
 
         # Declare parameters
+        # Note: GT uses base_footprint_gt to avoid TF conflict with main tree
         self.declare_parameter('gt_parent_frame', 'map_gt')
-        self.declare_parameter('gt_child_frame', 'base_footprint')
+        self.declare_parameter('gt_child_frame', 'base_footprint_gt')
         self.declare_parameter('est_parent_frame', 'map')
         self.declare_parameter('est_child_frame', 'base_footprint')
         self.declare_parameter('output_dir', '')
@@ -62,6 +67,14 @@ class TrajectoryExporter(Node):
         timer_period = 1.0 / self.sample_rate
         self.timer = self.create_timer(timer_period, self.sample_transforms)
 
+        # Create timer for periodic saving (every 5 seconds as backup)
+        self.save_timer = self.create_timer(5.0, self.periodic_save)
+        self.last_save_gt_count = 0
+        self.last_save_est_count = 0
+
+        # Register shutdown callback
+        self.context.on_shutdown(self.on_shutdown)
+
         self.get_logger().info(
             f'Trajectory exporter started:\n'
             f'  GT: {self.gt_parent} -> {self.gt_child}\n'
@@ -72,17 +85,20 @@ class TrajectoryExporter(Node):
 
     def sample_transforms(self):
         """Sample current TF transforms and store them."""
-        now = self.get_clock().now()
+        # Use Time() (time 0) to get the LATEST available transform
+        # instead of get_clock().now() which may be ahead of what's in the buffer.
+        # The actual timestamp will be taken from the transform's header.stamp.
+        latest = Time()
 
         # Sample ground truth
         self._sample_transform(
-            self.gt_parent, self.gt_child, now,
+            self.gt_parent, self.gt_child, latest,
             self.gt_poses, 'GT', 'gt_available'
         )
 
         # Sample SLAM estimate
         self._sample_transform(
-            self.est_parent, self.est_child, now,
+            self.est_parent, self.est_child, latest,
             self.est_poses, 'EST', 'est_available'
         )
 
@@ -116,14 +132,41 @@ class TrajectoryExporter(Node):
                 self.get_logger().info(f'{label} transform available: {parent} -> {child}')
 
         except (LookupException, ExtrapolationException) as e:
-            # Transform not yet available - this is normal during startup
+            # Log lookup failures periodically for debugging
+            fail_count_attr = f'_{label.lower()}_fail_count'
+            if not hasattr(self, fail_count_attr):
+                setattr(self, fail_count_attr, 0)
+            count = getattr(self, fail_count_attr)
+            setattr(self, fail_count_attr, count + 1)
+
+            # Log every 100 failures (every 5 seconds at 20Hz)
+            if count % 100 == 0:
+                self.get_logger().warn(
+                    f'{label} TF lookup failed ({count} times): {parent} -> {child}: {e}'
+                )
+
             if getattr(self, avail_attr):
                 # Was available, now not - log warning
                 self.get_logger().warn(f'{label} transform temporarily unavailable: {e}')
         except Exception as e:
             self.get_logger().error(f'{label} transform error: {e}')
 
-    def save_trajectories(self):
+    def periodic_save(self):
+        """Periodically save trajectories as backup."""
+        self.get_logger().info(f'Periodic save check: GT={len(self.gt_poses)}, EST={len(self.est_poses)}')
+        # Only save if we have new data
+        if (len(self.gt_poses) > self.last_save_gt_count or
+            len(self.est_poses) > self.last_save_est_count):
+            self.save_trajectories(quiet=False)  # Log saves for debugging
+            self.last_save_gt_count = len(self.gt_poses)
+            self.last_save_est_count = len(self.est_poses)
+
+    def on_shutdown(self):
+        """Callback when ROS context is shutting down."""
+        self.get_logger().info('Shutdown requested, saving trajectories...')
+        self.save_trajectories()
+
+    def save_trajectories(self, quiet=False):
         """Save collected trajectories to TUM format files."""
         gt_path = os.path.join(self.output_dir, 'gt.tum')
         est_path = os.path.join(self.output_dir, 'est.tum')
@@ -131,15 +174,17 @@ class TrajectoryExporter(Node):
         # Save ground truth
         if self.gt_poses:
             self._write_tum_file(gt_path, self.gt_poses)
-            self.get_logger().info(f'Saved {len(self.gt_poses)} GT poses to {gt_path}')
-        else:
+            if not quiet:
+                self.get_logger().info(f'Saved {len(self.gt_poses)} GT poses to {gt_path}')
+        elif not quiet:
             self.get_logger().warn('No GT poses collected')
 
         # Save estimate
         if self.est_poses:
             self._write_tum_file(est_path, self.est_poses)
-            self.get_logger().info(f'Saved {len(self.est_poses)} EST poses to {est_path}')
-        else:
+            if not quiet:
+                self.get_logger().info(f'Saved {len(self.est_poses)} EST poses to {est_path}')
+        elif not quiet:
             self.get_logger().warn('No EST poses collected')
 
         return len(self.gt_poses), len(self.est_poses)
