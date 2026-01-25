@@ -11,7 +11,8 @@
 
 | Frame | Description |
 |-------|-------------|
-| `base_link` | Center of rover body, on ground plane, X forward, Y left, Z up |
+| `base_footprint` | Robot footprint on ground plane (z=0), X forward, Y left, Z up |
+| `base_link` | Center of rover body, above base_footprint |
 | `laser_frame` | LiDAR sensor frame, rigidly attached to base_link |
 | `odom` | Odometry origin, initialized at robot start position |
 | `map` | SLAM global frame (owned by SLAM algorithm) |
@@ -21,10 +22,11 @@
 
 | Transform | Publisher | Type | Rate |
 |-----------|-----------|------|------|
-| `odom → base_link` | diff_drive plugin (Gazebo) | Dynamic | 50 Hz |
+| `odom → base_footprint` | diff_drive plugin (Gazebo) | Dynamic | 50 Hz |
+| `base_footprint → base_link` | robot_state_publisher | Static | Once |
 | `base_link → laser_frame` | robot_state_publisher | Static | Once |
 | `map → odom` | SLAM algorithm | Dynamic | ~10 Hz |
-| `map_gt → base_link` | gt_publisher | Dynamic | 50 Hz |
+| `map_gt → base_footprint` | gt_publisher | Dynamic | 50 Hz |
 
 ### TF Tree Structure
 
@@ -33,9 +35,11 @@ During Simulation:
 
     odom                    map_gt
       │                       │
-      └── base_link ──────────┘  (same base_link, two parents)
+      └── base_footprint ─────┘  (same base_footprint, two parents)
             │
-            └── laser_frame
+            └── base_link
+                  │
+                  └── laser_frame
 
 
 During SLAM (adds map→odom):
@@ -44,9 +48,11 @@ During SLAM (adds map→odom):
       │                       │
       └── odom                │
             │                 │
-            └── base_link ────┘
+            └── base_footprint┘
                   │
-                  └── laser_frame
+                  └── base_link
+                        │
+                        └── laser_frame
 ```
 
 ---
@@ -95,7 +101,7 @@ ranges: [...]            # 360 float values
 ```yaml
 header:
   frame_id: "odom"       # or "map_gt" for /gt_pose
-child_frame_id: "base_link"
+child_frame_id: "base_footprint"
 pose:
   pose:
     position: {x, y, z}  # meters
@@ -286,9 +292,9 @@ Example: `~/thesis/ros2_ws/bags/traj_01_easy__baseline/`
 | Parameter | Default | Type | Description |
 |-----------|---------|------|-------------|
 | `gt_parent_frame` | "map_gt" | string | GT TF parent |
-| `gt_child_frame` | "base_link" | string | GT TF child |
+| `gt_child_frame` | "base_footprint" | string | GT TF child |
 | `est_parent_frame` | "map" | string | Estimate TF parent |
-| `est_child_frame` | "base_link" | string | Estimate TF child |
+| `est_child_frame` | "base_footprint" | string | Estimate TF child |
 | `output_dir` | (required) | string | Where to write .tum files |
 | `sample_rate` | 20.0 | float | Hz |
 | `use_sim_time` | true | bool | Use /clock for time |
@@ -311,7 +317,7 @@ Example: `~/thesis/ros2_ws/bags/traj_01_easy__baseline/`
 # slam_toolbox.yaml
 odom_frame: odom
 map_frame: map
-base_frame: base_link
+base_frame: base_footprint
 scan_topic: /scan
 use_sim_time: true
 ```
@@ -321,8 +327,8 @@ use_sim_time: true
 ```lua
 -- cartographer_2d.lua
 MAP_FRAME = "map"
-TRACKING_FRAME = "base_link"
-PUBLISHED_FRAME = "base_link"
+TRACKING_FRAME = "base_footprint"
+PUBLISHED_FRAME = "base_footprint"
 ODOM_FRAME = "odom"
 PROVIDE_ODOM_FRAME = false  -- Use existing odom
 USE_ODOMETRY = true

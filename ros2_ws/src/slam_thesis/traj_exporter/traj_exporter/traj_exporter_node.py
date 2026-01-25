@@ -1,18 +1,180 @@
 #!/usr/bin/env python3
 """
-Trajectory exporter node.
-Samples TF transforms and writes TUM format trajectory files.
+Trajectory exporter node for SLAM thesis evaluation.
+
+Samples TF transforms at a configurable rate and writes TUM format trajectory files:
+- gt.tum: Ground truth trajectory (map_gt -> base_footprint)
+- est.tum: SLAM estimate trajectory (map -> base_footprint)
+
+TUM format: timestamp tx ty tz qx qy qz qw
 """
 
+import os
 import rclpy
 from rclpy.node import Node
+from rclpy.duration import Duration
+from tf2_ros import Buffer, TransformListener, LookupException, ExtrapolationException
+
+
+class TrajectoryExporter(Node):
+    """Exports TF-based trajectories to TUM format files."""
+
+    def __init__(self):
+        super().__init__('traj_exporter')
+
+        # Declare parameters
+        self.declare_parameter('gt_parent_frame', 'map_gt')
+        self.declare_parameter('gt_child_frame', 'base_footprint')
+        self.declare_parameter('est_parent_frame', 'map')
+        self.declare_parameter('est_child_frame', 'base_footprint')
+        self.declare_parameter('output_dir', '')
+        self.declare_parameter('sample_rate', 20.0)
+
+        # Get parameter values
+        self.gt_parent = self.get_parameter('gt_parent_frame').get_parameter_value().string_value
+        self.gt_child = self.get_parameter('gt_child_frame').get_parameter_value().string_value
+        self.est_parent = self.get_parameter('est_parent_frame').get_parameter_value().string_value
+        self.est_child = self.get_parameter('est_child_frame').get_parameter_value().string_value
+        self.output_dir = self.get_parameter('output_dir').get_parameter_value().string_value
+        self.sample_rate = self.get_parameter('sample_rate').get_parameter_value().double_value
+
+        # Validate output_dir
+        if not self.output_dir:
+            self.get_logger().error('output_dir parameter is required')
+            raise ValueError('output_dir parameter is required')
+
+        # Create output directory if needed
+        os.makedirs(self.output_dir, exist_ok=True)
+
+        # TF2 buffer and listener
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
+
+        # Storage for trajectory points
+        self.gt_poses = []
+        self.est_poses = []
+
+        # Track availability
+        self.gt_available = False
+        self.est_available = False
+
+        # Create timer for sampling
+        timer_period = 1.0 / self.sample_rate
+        self.timer = self.create_timer(timer_period, self.sample_transforms)
+
+        self.get_logger().info(
+            f'Trajectory exporter started:\n'
+            f'  GT: {self.gt_parent} -> {self.gt_child}\n'
+            f'  EST: {self.est_parent} -> {self.est_child}\n'
+            f'  Output: {self.output_dir}\n'
+            f'  Rate: {self.sample_rate} Hz'
+        )
+
+    def sample_transforms(self):
+        """Sample current TF transforms and store them."""
+        now = self.get_clock().now()
+
+        # Sample ground truth
+        self._sample_transform(
+            self.gt_parent, self.gt_child, now,
+            self.gt_poses, 'GT', 'gt_available'
+        )
+
+        # Sample SLAM estimate
+        self._sample_transform(
+            self.est_parent, self.est_child, now,
+            self.est_poses, 'EST', 'est_available'
+        )
+
+    def _sample_transform(self, parent, child, time, storage, label, avail_attr):
+        """Sample a single transform and store it."""
+        try:
+            # Look up transform with small timeout
+            transform = self.tf_buffer.lookup_transform(
+                parent, child, time,
+                timeout=Duration(seconds=0.1)
+            )
+
+            # Extract timestamp (use transform stamp for accuracy)
+            stamp = transform.header.stamp
+            timestamp = stamp.sec + stamp.nanosec * 1e-9
+
+            # Extract translation
+            t = transform.transform.translation
+            tx, ty, tz = t.x, t.y, t.z
+
+            # Extract rotation (quaternion)
+            r = transform.transform.rotation
+            qx, qy, qz, qw = r.x, r.y, r.z, r.w
+
+            # Store pose tuple
+            storage.append((timestamp, tx, ty, tz, qx, qy, qz, qw))
+
+            # Log first successful lookup
+            if not getattr(self, avail_attr):
+                setattr(self, avail_attr, True)
+                self.get_logger().info(f'{label} transform available: {parent} -> {child}')
+
+        except (LookupException, ExtrapolationException) as e:
+            # Transform not yet available - this is normal during startup
+            if getattr(self, avail_attr):
+                # Was available, now not - log warning
+                self.get_logger().warn(f'{label} transform temporarily unavailable: {e}')
+        except Exception as e:
+            self.get_logger().error(f'{label} transform error: {e}')
+
+    def save_trajectories(self):
+        """Save collected trajectories to TUM format files."""
+        gt_path = os.path.join(self.output_dir, 'gt.tum')
+        est_path = os.path.join(self.output_dir, 'est.tum')
+
+        # Save ground truth
+        if self.gt_poses:
+            self._write_tum_file(gt_path, self.gt_poses)
+            self.get_logger().info(f'Saved {len(self.gt_poses)} GT poses to {gt_path}')
+        else:
+            self.get_logger().warn('No GT poses collected')
+
+        # Save estimate
+        if self.est_poses:
+            self._write_tum_file(est_path, self.est_poses)
+            self.get_logger().info(f'Saved {len(self.est_poses)} EST poses to {est_path}')
+        else:
+            self.get_logger().warn('No EST poses collected')
+
+        return len(self.gt_poses), len(self.est_poses)
+
+    def _write_tum_file(self, filepath, poses):
+        """Write poses to TUM format file."""
+        with open(filepath, 'w') as f:
+            f.write('# timestamp tx ty tz qx qy qz qw\n')
+            for pose in poses:
+                # Format: timestamp tx ty tz qx qy qz qw
+                f.write(f'{pose[0]:.6f} {pose[1]:.6f} {pose[2]:.6f} {pose[3]:.6f} '
+                       f'{pose[4]:.6f} {pose[5]:.6f} {pose[6]:.6f} {pose[7]:.6f}\n')
 
 
 def main(args=None):
     rclpy.init(args=args)
-    # Node implementation will be added in T6.1
-    rclpy.shutdown()
+
+    node = None
+    try:
+        node = TrajectoryExporter()
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    except ValueError as e:
+        print(f'Parameter error: {e}')
+        return 1
+    finally:
+        if node is not None:
+            # Save trajectories on shutdown
+            node.save_trajectories()
+            node.destroy_node()
+        rclpy.shutdown()
+
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    exit(main())

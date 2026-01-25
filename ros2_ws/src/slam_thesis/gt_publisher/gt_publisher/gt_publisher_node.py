@@ -4,7 +4,10 @@ Ground truth publisher node for SLAM thesis.
 
 Subscribes to Gazebo model pose (bridged via ros_gz_bridge) and publishes:
 - /gt_pose (nav_msgs/Odometry) at configurable rate
-- TF: map_gt -> base_link
+- TF: map_gt -> base_footprint
+
+Note: Uses base_footprint (not base_link) for consistency with SLAM tracking frame.
+The Gazebo model pose is at base_footprint level (ground plane).
 
 Uses use_sim_time for proper synchronization with simulation/bag replay.
 """
@@ -75,7 +78,7 @@ class GroundTruthPublisher(Node):
         odom = Odometry()
         odom.header.stamp = now.to_msg()
         odom.header.frame_id = 'map_gt'
-        odom.child_frame_id = 'base_link'
+        odom.child_frame_id = 'base_footprint'
 
         # Copy pose
         odom.pose.pose = self.latest_pose
@@ -94,11 +97,11 @@ class GroundTruthPublisher(Node):
 
         self.gt_pub.publish(odom)
 
-        # Publish TF: map_gt -> base_link
+        # Publish TF: map_gt -> base_footprint
         tf_msg = TransformStamped()
         tf_msg.header.stamp = now.to_msg()
         tf_msg.header.frame_id = 'map_gt'
-        tf_msg.child_frame_id = 'base_link'
+        tf_msg.child_frame_id = 'base_footprint'
 
         tf_msg.transform.translation.x = self.latest_pose.position.x
         tf_msg.transform.translation.y = self.latest_pose.position.y
