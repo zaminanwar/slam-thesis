@@ -204,13 +204,19 @@
   </gazebo>
   <gazebo reference="left_wheel">
     <material>Gazebo/Black</material>
-    <mu1>1.0</mu1>
-    <mu2>1.0</mu2>
+    <mu1>50.0</mu1>
+    <mu2>50.0</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+    <minDepth>0.001</minDepth>
   </gazebo>
   <gazebo reference="right_wheel">
     <material>Gazebo/Black</material>
-    <mu1>1.0</mu1>
-    <mu2>1.0</mu2>
+    <mu1>50.0</mu1>
+    <mu2>50.0</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+    <minDepth>0.001</minDepth>
   </gazebo>
   <gazebo reference="front_caster">
     <material>Gazebo/Grey</material>
@@ -233,8 +239,8 @@
       <right_joint>right_wheel_joint</right_joint>
       <wheel_separation>${wheel_separation}</wheel_separation>
       <wheel_radius>${wheel_radius}</wheel_radius>
-      <max_linear_acceleration>1.0</max_linear_acceleration>
-      <max_angular_acceleration>2.0</max_angular_acceleration>
+      <max_linear_acceleration>0.5</max_linear_acceleration>
+      <max_angular_acceleration>0.8</max_angular_acceleration>
       <odom_publish_frequency>50</odom_publish_frequency>
       <!-- Topics in gz namespace, will be bridged to ROS -->
       <topic>cmd_vel</topic>

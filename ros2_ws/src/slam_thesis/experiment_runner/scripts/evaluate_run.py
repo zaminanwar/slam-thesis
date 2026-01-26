@@ -175,6 +175,151 @@ def estimate_trajectory_length(tum_file: Path) -> float:
     return total_length
 
 
+def load_trajectory_csv(csv_file: Path) -> list:
+    """
+    Load intended trajectory from CSV file.
+
+    Expected format: x,y,yaw,speed (with header row)
+
+    Returns:
+        List of (x, y) tuples representing waypoints
+    """
+    import csv
+    waypoints = []
+    with open(csv_file, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            waypoints.append((float(row['x']), float(row['y'])))
+    return waypoints
+
+
+def compute_intended_trajectory_length(waypoints: list) -> float:
+    """
+    Compute total length of intended trajectory from waypoints.
+
+    Args:
+        waypoints: List of (x, y) tuples
+
+    Returns:
+        Total path length in meters
+    """
+    import math
+    if len(waypoints) < 2:
+        return 0.0
+
+    total_length = 0.0
+    for i in range(1, len(waypoints)):
+        dx = waypoints[i][0] - waypoints[i-1][0]
+        dy = waypoints[i][1] - waypoints[i-1][1]
+        total_length += math.sqrt(dx*dx + dy*dy)
+
+    return total_length
+
+
+def get_tum_positions(tum_file: Path) -> list:
+    """
+    Extract (x, y) positions from TUM file.
+
+    Returns:
+        List of (x, y) tuples
+    """
+    positions = []
+    with open(tum_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#'):
+                parts = line.split()
+                if len(parts) >= 4:
+                    positions.append((float(parts[1]), float(parts[2])))
+    return positions
+
+
+def compute_completion_metrics(
+    est_file: Path,
+    trajectory_file: Path,
+    goal_tolerance: float = 0.5
+) -> dict:
+    """
+    Compute trajectory completion metrics.
+
+    Compares actual traveled path (from est.tum) against intended trajectory (from CSV).
+
+    Args:
+        est_file: Path to estimated trajectory (TUM format)
+        trajectory_file: Path to intended trajectory (CSV format)
+        goal_tolerance: Distance threshold for considering goal reached (meters)
+
+    Returns:
+        dict with completion metrics:
+        - intended_distance: Total intended path length (m)
+        - actual_distance: Total distance traveled (m)
+        - completion_rate: actual/intended ratio (0-1+, can exceed 1 if robot wanders)
+        - final_distance_to_goal: Distance from final pose to final waypoint (m)
+        - goal_reached: Whether final pose is within tolerance of final waypoint
+        - start_distance: Distance from starting pose to first waypoint (m)
+    """
+    import math
+
+    result = {
+        'intended_distance': None,
+        'actual_distance': None,
+        'completion_rate': None,
+        'final_distance_to_goal': None,
+        'goal_reached': None,
+        'start_distance': None
+    }
+
+    # Load intended trajectory
+    try:
+        waypoints = load_trajectory_csv(trajectory_file)
+        if len(waypoints) < 2:
+            return {'error': 'Intended trajectory has fewer than 2 waypoints'}
+        result['intended_distance'] = compute_intended_trajectory_length(waypoints)
+    except Exception as e:
+        return {'error': f'Failed to load trajectory CSV: {str(e)}'}
+
+    # Load actual positions
+    try:
+        actual_positions = get_tum_positions(est_file)
+        if len(actual_positions) < 2:
+            return {'error': 'Actual trajectory has fewer than 2 positions'}
+    except Exception as e:
+        return {'error': f'Failed to load est.tum: {str(e)}'}
+
+    # Compute actual distance traveled (2D)
+    actual_distance = 0.0
+    for i in range(1, len(actual_positions)):
+        dx = actual_positions[i][0] - actual_positions[i-1][0]
+        dy = actual_positions[i][1] - actual_positions[i-1][1]
+        actual_distance += math.sqrt(dx*dx + dy*dy)
+    result['actual_distance'] = actual_distance
+
+    # Compute completion rate
+    if result['intended_distance'] > 0:
+        result['completion_rate'] = actual_distance / result['intended_distance']
+    else:
+        result['completion_rate'] = 0.0
+
+    # Compute distance from starting pose to first waypoint
+    first_waypoint = waypoints[0]
+    first_actual = actual_positions[0]
+    start_dx = first_actual[0] - first_waypoint[0]
+    start_dy = first_actual[1] - first_waypoint[1]
+    result['start_distance'] = math.sqrt(start_dx*start_dx + start_dy*start_dy)
+
+    # Compute distance from final pose to final waypoint
+    final_waypoint = waypoints[-1]
+    final_actual = actual_positions[-1]
+    final_dx = final_actual[0] - final_waypoint[0]
+    final_dy = final_actual[1] - final_waypoint[1]
+    result['final_distance_to_goal'] = math.sqrt(final_dx*final_dx + final_dy*final_dy)
+
+    # Check if goal was reached
+    result['goal_reached'] = result['final_distance_to_goal'] <= goal_tolerance
+
+    return result
+
+
 def compute_rpe(gt_file: Path, est_file: Path, output_dir: Path) -> dict:
     """
     Compute Relative Pose Error (RPE).
@@ -229,9 +374,22 @@ def compute_rpe(gt_file: Path, est_file: Path, output_dir: Path) -> dict:
     return {'error': f'RPE: Failed with all delta values {deltas} (trajectory length: {traj_length:.1f}m)'}
 
 
-def evaluate_run(gt_file: Path, est_file: Path, output_file: Path) -> dict:
+def evaluate_run(
+    gt_file: Path,
+    est_file: Path,
+    output_file: Path,
+    trajectory_file: Path = None,
+    goal_tolerance: float = 0.5
+) -> dict:
     """
     Run full evaluation pipeline.
+
+    Args:
+        gt_file: Ground truth trajectory (TUM format)
+        est_file: Estimated trajectory (TUM format)
+        output_file: Output metrics.json path
+        trajectory_file: Optional intended trajectory CSV for completion metrics
+        goal_tolerance: Distance threshold for goal reached (default 0.5m)
 
     Returns:
         dict with evaluation results and metadata
@@ -308,6 +466,26 @@ def evaluate_run(gt_file: Path, est_file: Path, output_file: Path) -> dict:
             'delta_m': rpe_result.get('delta_m'),
         }
 
+    # Compute completion metrics (if trajectory file provided)
+    results['completion'] = None
+    if trajectory_file and trajectory_file.exists():
+        completion_result = compute_completion_metrics(
+            est_file, trajectory_file, goal_tolerance
+        )
+        if 'error' in completion_result:
+            results['errors'].append(f"Completion metrics: {completion_result['error']}")
+        else:
+            results['completion'] = {
+                'intended_distance': completion_result['intended_distance'],
+                'actual_distance': completion_result['actual_distance'],
+                'completion_rate': completion_result['completion_rate'],
+                'final_distance_to_goal': completion_result['final_distance_to_goal'],
+                'goal_reached': completion_result['goal_reached'],
+                'start_distance': completion_result['start_distance'],
+            }
+    elif trajectory_file:
+        results['errors'].append(f'Trajectory file not found: {trajectory_file}')
+
     # Determine overall status
     if results['ate'] is not None and results['rpe'] is not None:
         results['status'] = 'success'
@@ -328,6 +506,10 @@ Examples:
     # Evaluate a run directory (expects gt.tum and est.tum)
     python3 evaluate_run.py --run_dir ~/thesis/ros2_ws/results/slam_toolbox_run1
 
+    # Evaluate with trajectory completion metrics
+    python3 evaluate_run.py --run_dir ~/thesis/ros2_ws/results/slam_toolbox_run1 \\
+        --trajectory ~/thesis/trajectories/traj_01_easy.csv
+
     # Evaluate specific files
     python3 evaluate_run.py --gt gt.tum --est est.tum --output metrics.json
 
@@ -338,6 +520,13 @@ Output:
         "status": "success|partial|failed",
         "ate": {"rmse": 0.05, "mean": 0.04, ...},
         "rpe": {"rmse": 0.02, "mean": 0.015, ...},
+        "completion": {
+            "intended_distance": 12.5,
+            "actual_distance": 11.8,
+            "completion_rate": 0.94,
+            "final_distance_to_goal": 0.15,
+            "goal_reached": true
+        },
         "errors": []
     }
 """
@@ -364,6 +553,17 @@ Output:
         help='Output metrics.json file path'
     )
     parser.add_argument(
+        '--trajectory',
+        type=Path,
+        help='Intended trajectory CSV file (for completion rate metrics)'
+    )
+    parser.add_argument(
+        '--goal_tolerance',
+        type=float,
+        default=0.5,
+        help='Distance threshold for goal reached (default: 0.5m)'
+    )
+    parser.add_argument(
         '--verbose', '-v',
         action='store_true',
         help='Print detailed output'
@@ -388,9 +588,15 @@ Output:
         print(f"Ground truth: {gt_file}")
         print(f"Estimate: {est_file}")
         print(f"Output: {output_file}")
+        if args.trajectory:
+            print(f"Trajectory: {args.trajectory}")
 
     # Run evaluation
-    results = evaluate_run(gt_file, est_file, output_file)
+    results = evaluate_run(
+        gt_file, est_file, output_file,
+        trajectory_file=args.trajectory,
+        goal_tolerance=args.goal_tolerance
+    )
 
     # Save results
     with open(output_file, 'w') as f:
@@ -403,6 +609,12 @@ Output:
             print(f"ATE RMSE: {results['ate']['rmse']:.4f} m")
         if results.get('rpe'):
             print(f"RPE RMSE: {results['rpe']['rmse']:.4f} m")
+        if results.get('completion'):
+            c = results['completion']
+            print(f"Completion: {c['completion_rate']*100:.1f}% "
+                  f"({c['actual_distance']:.2f}m / {c['intended_distance']:.2f}m)")
+            print(f"Final distance to goal: {c['final_distance_to_goal']:.3f} m "
+                  f"({'REACHED' if c['goal_reached'] else 'NOT REACHED'})")
         if results['errors']:
             print("Errors:")
             for err in results['errors']:

@@ -23,22 +23,101 @@ Output:
 """
 
 import argparse
+import csv
 import json
 import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+import psutil
+
 # Constants
 VALID_ALGORITHMS = ['slam_toolbox', 'cartographer']
-DEFAULT_TIMEOUT = 180  # seconds
+DEFAULT_TIMEOUT = 300  # seconds (5 min for longer trajectories)
 STARTUP_WAIT = 5  # seconds to wait for nodes to initialize
 POST_TRAJECTORY_WAIT = 3  # seconds to wait after trajectory completes
 TRAJECTORY_DONE_TOPIC = '/trajectory_done'
+RESOURCE_SAMPLE_INTERVAL = 1.0  # seconds between resource samples
+STUCK_DETECTION_THRESHOLD = 20.0  # seconds without movement before considered stuck
+STUCK_VELOCITY_THRESHOLD = 0.02  # m/s - velocities below this are "not moving"
+
+
+class ResourceMonitor:
+    """Background monitor for CPU and memory usage during experiment."""
+
+    def __init__(self, sample_interval: float = RESOURCE_SAMPLE_INTERVAL):
+        self.sample_interval = sample_interval
+        self.samples: list[dict] = []
+        self._stop_event = threading.Event()
+        self._thread: Optional[threading.Thread] = None
+        self._start_time: Optional[float] = None
+
+    def start(self):
+        """Start background monitoring."""
+        self._start_time = time.time()
+        self._stop_event.clear()
+        self.samples = []
+        self._thread = threading.Thread(target=self._monitor_loop, daemon=True)
+        self._thread.start()
+
+    def stop(self):
+        """Stop monitoring and wait for thread to finish."""
+        self._stop_event.set()
+        if self._thread:
+            self._thread.join(timeout=2)
+
+    def _monitor_loop(self):
+        """Sampling loop that runs in background thread."""
+        while not self._stop_event.is_set():
+            try:
+                cpu_percent = psutil.cpu_percent(interval=None)
+                memory_info = psutil.virtual_memory()
+                memory_mb = memory_info.used / (1024 * 1024)
+
+                sample = {
+                    'timestamp': time.time() - self._start_time,
+                    'cpu_percent': cpu_percent,
+                    'memory_mb': memory_mb
+                }
+                self.samples.append(sample)
+            except Exception:
+                pass  # Skip sample on error
+
+            self._stop_event.wait(self.sample_interval)
+
+    def get_stats(self) -> dict:
+        """Calculate summary statistics from collected samples."""
+        if not self.samples:
+            return {}
+
+        cpu_values = [s['cpu_percent'] for s in self.samples]
+        mem_values = [s['memory_mb'] for s in self.samples]
+
+        return {
+            'avg_cpu': sum(cpu_values) / len(cpu_values),
+            'peak_cpu': max(cpu_values),
+            'min_cpu': min(cpu_values),
+            'avg_memory_mb': sum(mem_values) / len(mem_values),
+            'peak_memory_mb': max(mem_values),
+            'min_memory_mb': min(mem_values),
+            'sample_count': len(self.samples)
+        }
+
+    def save_csv(self, filepath: Path):
+        """Save samples to CSV file."""
+        if not self.samples:
+            return
+
+        with open(filepath, 'w', newline='') as f:
+            writer = csv.DictWriter(f, fieldnames=['timestamp', 'cpu_percent', 'memory_mb'])
+            writer.writeheader()
+            writer.writerows(self.samples)
 
 
 class ProcessManager:
@@ -178,9 +257,39 @@ def wait_for_tf(parent: str, child: str, timeout: float, env: dict) -> bool:
     return False
 
 
-def wait_for_trajectory_done(timeout: float, env: dict) -> bool:
-    """Wait for trajectory completion signal (data: true)."""
+def get_robot_velocity(env: dict) -> Optional[float]:
+    """Get current robot velocity from /odom topic."""
+    try:
+        result = subprocess.run(
+            ['ros2', 'topic', 'echo', '/odom', 'nav_msgs/msg/Odometry', '--once'],
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=3
+        )
+        if result.returncode == 0 and result.stdout:
+            # Parse velocity from output - look for linear x velocity
+            # Format: twist: \n  twist: \n    linear: \n      x: 0.123
+            import re
+            # Find linear velocity in twist.twist.linear.x
+            match = re.search(r'linear:\s*\n\s*x:\s*([-\d.]+)', result.stdout)
+            if match:
+                return abs(float(match.group(1)))
+    except (subprocess.TimeoutExpired, ValueError):
+        pass
+    return None
+
+
+def wait_for_trajectory_done(timeout: float, env: dict, detect_stuck: bool = True) -> tuple[bool, str]:
+    """
+    Wait for trajectory completion signal (data: true).
+
+    Returns:
+        tuple of (completed, reason) where reason is 'completed', 'timeout', or 'stuck'
+    """
     start = time.time()
+    last_moving_time = start  # Track when robot was last moving
+
     while time.time() - start < timeout:
         try:
             # Get a single message from the topic
@@ -196,13 +305,24 @@ def wait_for_trajectory_done(timeout: float, env: dict) -> bool:
                 # Check if the message indicates completion (data: true)
                 # The output format is like: "data: true" or "data: false"
                 if 'data: true' in result.stdout.lower():
-                    return True
+                    return True, 'completed'
                 # Got a message but it's False, keep waiting
                 time.sleep(0.5)
         except subprocess.TimeoutExpired:
             # No message received in 5s, keep trying
-            continue
-    return False
+            pass
+
+        # Check if robot is stuck (only if enabled)
+        if detect_stuck:
+            velocity = get_robot_velocity(env)
+            if velocity is not None:
+                if velocity > STUCK_VELOCITY_THRESHOLD:
+                    last_moving_time = time.time()
+                elif time.time() - last_moving_time > STUCK_DETECTION_THRESHOLD:
+                    # Robot hasn't moved for too long - likely stuck/crashed
+                    return False, 'stuck'
+
+    return False, 'timeout'
 
 
 def run_experiment(
@@ -211,6 +331,7 @@ def run_experiment(
     output_dir: Path,
     timeout: float,
     speed_scale: float,
+    pose_mode: str,
     verbose: bool
 ) -> dict:
     """
@@ -222,6 +343,7 @@ def run_experiment(
     results = {
         'algorithm': algo,
         'trajectory': trajectory,
+        'pose_mode': pose_mode,
         'output_dir': str(output_dir),
         'start_time': datetime.now().isoformat(),
         'status': 'unknown',
@@ -230,10 +352,15 @@ def run_experiment(
 
     pm = ProcessManager()
     env = source_ros_env()
+    resource_monitor = ResourceMonitor()
 
     try:
         # Create output directory
         output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Start resource monitoring
+        print("[run_one] Starting resource monitor...")
+        resource_monitor.start()
 
         # === Stage 1: Start Gazebo simulation ===
         print(f"\n[run_one] === Stage 1: Starting Gazebo simulation ===")
@@ -303,10 +430,21 @@ def run_experiment(
         print(f"\n[run_one] === Stage 4: Executing trajectory: {trajectory} ===")
         traj_file = f'{trajectory}.csv' if not trajectory.endswith('.csv') else trajectory
 
+        # Determine pose feedback parameters based on pose_mode
+        use_slam_pose = pose_mode in ['slam', 'ground_truth']
+        pose_frame = 'map' if pose_mode == 'slam' else 'map_gt' if pose_mode == 'ground_truth' else ''
+
+        pose_args = []
+        if use_slam_pose:
+            pose_args = [f'use_slam_pose:=true', f'pose_frame:={pose_frame}']
+            print(f"[run_one] Pose mode: {pose_mode} (use_slam_pose=true, pose_frame={pose_frame})")
+        else:
+            print(f"[run_one] Pose mode: {pose_mode} (using raw odometry)")
+
         traj_proc = pm.start(
             ['ros2', 'launch', 'rover_control', 'follow_trajectory.launch.py',
              f'trajectory:={traj_file}',
-             f'speed_scale:={speed_scale}'],
+             f'speed_scale:={speed_scale}'] + pose_args,
             'Trajectory follower',
             env
         )
@@ -315,12 +453,17 @@ def run_experiment(
         print(f"[run_one] Waiting for trajectory to complete (timeout: {timeout}s)...")
         traj_start = time.time()
 
-        if wait_for_trajectory_done(timeout, env):
-            elapsed = time.time() - traj_start
+        completed, reason = wait_for_trajectory_done(timeout, env, detect_stuck=True)
+        elapsed = time.time() - traj_start
+        results['trajectory_time'] = elapsed
+        results['trajectory_result'] = reason
+
+        if completed:
             print(f"[run_one] Trajectory completed in {elapsed:.1f}s")
-            results['trajectory_time'] = elapsed
+        elif reason == 'stuck':
+            print(f"[run_one] Robot stuck/crashed after {elapsed:.1f}s - moving to next experiment")
+            results['errors'].append(f'Robot stuck/crashed after {elapsed:.1f}s')
         else:
-            elapsed = time.time() - traj_start
             print(f"[run_one] Trajectory timeout after {elapsed:.1f}s")
             results['errors'].append(f'Trajectory timeout after {elapsed:.1f}s')
 
@@ -341,13 +484,32 @@ def run_experiment(
         print(f"\n[run_one] === Stage 5: Stopping SLAM (saving trajectories) ===")
         results['end_time'] = datetime.now().isoformat()
 
+        experiment_failed = False
     except Exception as e:
         results['status'] = 'failed'
         results['errors'].append(f'Exception during experiment: {str(e)}')
-        return results
+        experiment_failed = True
     finally:
+        # Stop resource monitoring
+        resource_monitor.stop()
+
         # Clean up all processes
         pm.cleanup()
+
+    # Save resource usage data (always, even on failure)
+    print("[run_one] Saving resource usage data...")
+    resource_csv = output_dir / 'resource_usage.csv'
+    resource_monitor.save_csv(resource_csv)
+    resource_stats = resource_monitor.get_stats()
+    if resource_stats:
+        results['resource_usage'] = resource_stats
+        print(f"[run_one] Resource samples: {resource_stats['sample_count']}")
+        print(f"[run_one] Avg CPU: {resource_stats['avg_cpu']:.1f}%, Peak: {resource_stats['peak_cpu']:.1f}%")
+        print(f"[run_one] Avg Memory: {resource_stats['avg_memory_mb']:.0f} MB, Peak: {resource_stats['peak_memory_mb']:.0f} MB")
+
+    # Return early if experiment failed with exception
+    if experiment_failed:
+        return results
 
     # === Stage 6: Run evaluation ===
     print(f"\n[run_one] === Stage 6: Running evaluation ===")
@@ -380,8 +542,18 @@ def run_experiment(
 
     # Run evaluate_run.py
     eval_script = Path(__file__).parent / 'evaluate_run.py'
+
+    # Resolve trajectory file path for completion metrics
+    traj_dir = Path.home() / 'thesis' / 'trajectories'
+    traj_name = trajectory if trajectory.endswith('.csv') else f'{trajectory}.csv'
+    traj_file = traj_dir / traj_name
+
+    eval_cmd = ['python3', str(eval_script), '--run_dir', str(output_dir), '--verbose']
+    if traj_file.exists():
+        eval_cmd.extend(['--trajectory', str(traj_file)])
+
     eval_result = subprocess.run(
-        ['python3', str(eval_script), '--run_dir', str(output_dir), '--verbose'],
+        eval_cmd,
         capture_output=True,
         text=True
     )
@@ -401,6 +573,10 @@ def run_experiment(
                     print(f"[run_one] ATE RMSE: {metrics['ate']['rmse']:.4f} m")
                 if metrics.get('rpe'):
                     print(f"[run_one] RPE RMSE: {metrics['rpe']['rmse']:.4f} m")
+                if metrics.get('completion'):
+                    c = metrics['completion']
+                    print(f"[run_one] Completion: {c['completion_rate']*100:.1f}% "
+                          f"(goal {'reached' if c['goal_reached'] else 'NOT reached'})")
     else:
         results['status'] = 'failed'
         results['errors'].append('Metrics file not generated')
@@ -466,6 +642,13 @@ Output structure:
     )
 
     parser.add_argument(
+        '--pose_mode', '-p',
+        choices=['odometry', 'slam', 'ground_truth'],
+        default='odometry',
+        help='Pose feedback source: odometry (raw), slam (SLAM-corrected), ground_truth (oracle)'
+    )
+
+    parser.add_argument(
         '--verbose', '-v',
         action='store_true',
         help='Print detailed output'
@@ -480,11 +663,12 @@ Output structure:
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         traj_name = Path(args.trajectory).stem
         results_base = Path.home() / 'thesis' / 'ros2_ws' / 'results'
-        output_dir = results_base / f'{args.algo}_{traj_name}_{timestamp}'
+        output_dir = results_base / f'{args.algo}_{traj_name}_{args.pose_mode}_{timestamp}'
 
     print(f"[run_one] SLAM Evaluation Experiment")
     print(f"[run_one] Algorithm: {args.algo}")
     print(f"[run_one] Trajectory: {args.trajectory}")
+    print(f"[run_one] Pose mode: {args.pose_mode}")
     print(f"[run_one] Output: {output_dir}")
     print(f"[run_one] Timeout: {args.timeout}s")
 
@@ -495,6 +679,7 @@ Output structure:
         output_dir=output_dir,
         timeout=args.timeout,
         speed_scale=args.speed_scale,
+        pose_mode=args.pose_mode,
         verbose=args.verbose
     )
 

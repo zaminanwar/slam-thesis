@@ -41,7 +41,7 @@ from typing import Optional
 DEFAULT_ALGORITHMS = ['slam_toolbox', 'cartographer']
 DEFAULT_TRAJECTORY_DIR = Path.home() / 'thesis' / 'trajectories'
 DEFAULT_RESULTS_DIR = Path.home() / 'thesis' / 'ros2_ws' / 'results'
-DEFAULT_TIMEOUT = 180  # seconds per experiment
+DEFAULT_TIMEOUT = 300  # seconds per experiment (5 min for longer trajectories)
 COOLDOWN_BETWEEN_RUNS = 5  # seconds between experiments
 
 
@@ -56,6 +56,7 @@ def discover_trajectories(trajectory_dir: Path) -> list[str]:
 def run_single_experiment(
     algo: str,
     trajectory: str,
+    pose_mode: str,
     output_dir: Path,
     timeout: float,
     speed_scale: float,
@@ -73,6 +74,7 @@ def run_single_experiment(
         'python3', str(run_one_script),
         '--algo', algo,
         '--trajectory', trajectory,
+        '--pose_mode', pose_mode,
         '--output_dir', str(output_dir),
         '--timeout', str(timeout),
         '--speed_scale', str(speed_scale)
@@ -134,6 +136,7 @@ def run_single_experiment(
 def run_batch(
     algorithms: list[str],
     trajectories: list[str],
+    pose_modes: list[str],
     output_base: Path,
     timeout: float,
     speed_scale: float,
@@ -146,12 +149,13 @@ def run_batch(
     Returns:
         dict with batch summary
     """
-    total_experiments = len(algorithms) * len(trajectories)
+    total_experiments = len(algorithms) * len(trajectories) * len(pose_modes)
 
     batch_summary = {
         'start_time': datetime.now().isoformat(),
         'algorithms': algorithms,
         'trajectories': trajectories,
+        'pose_modes': pose_modes,
         'total_experiments': total_experiments,
         'output_dir': str(output_base),
         'results': [],
@@ -167,6 +171,7 @@ def run_batch(
     print(f"{'='*60}")
     print(f"Algorithms: {', '.join(algorithms)}")
     print(f"Trajectories: {', '.join(trajectories)}")
+    print(f"Pose modes: {', '.join(pose_modes)}")
     print(f"Total experiments: {total_experiments}")
     print(f"Output directory: {output_base}")
     print(f"Timeout per experiment: {timeout}s")
@@ -176,8 +181,9 @@ def run_batch(
         print("[DRY RUN] Would run the following experiments:")
         for algo in algorithms:
             for traj in trajectories:
-                exp_dir = output_base / f'{algo}_{traj}'
-                print(f"  - {algo} + {traj} -> {exp_dir}")
+                for mode in pose_modes:
+                    exp_dir = output_base / f'{algo}_{traj}_{mode}'
+                    print(f"  - {algo} + {traj} + {mode} -> {exp_dir}")
         return batch_summary
 
     # Create output directory
@@ -186,31 +192,34 @@ def run_batch(
     experiment_num = 0
     for algo in algorithms:
         for traj in trajectories:
-            experiment_num += 1
-            exp_dir = output_base / f'{algo}_{traj}'
+            for mode in pose_modes:
+                experiment_num += 1
+                exp_dir = output_base / f'{algo}_{traj}_{mode}'
 
-            print(f"\n[{experiment_num}/{total_experiments}] {algo} + {traj}")
-            print(f"  Output: {exp_dir}")
+                print(f"\n[{experiment_num}/{total_experiments}] {algo} + {traj} + {mode}")
+                print(f"  Output: {exp_dir}")
 
-            # Run experiment
-            result = run_single_experiment(
-                algo=algo,
-                trajectory=traj,
-                output_dir=exp_dir,
-                timeout=timeout,
-                speed_scale=speed_scale,
-                verbose=verbose
-            )
+                # Run experiment
+                result = run_single_experiment(
+                    algo=algo,
+                    trajectory=traj,
+                    pose_mode=mode,
+                    output_dir=exp_dir,
+                    timeout=timeout,
+                    speed_scale=speed_scale,
+                    verbose=verbose
+                )
 
-            # Track results
-            batch_summary['results'].append({
-                'algorithm': algo,
-                'trajectory': traj,
-                'output_dir': str(exp_dir),
-                'status': result.get('status', 'unknown'),
-                'total_time': result.get('total_time', 0),
-                'errors': result.get('errors', [])
-            })
+                # Track results
+                batch_summary['results'].append({
+                    'algorithm': algo,
+                    'trajectory': traj,
+                    'pose_mode': mode,
+                    'output_dir': str(exp_dir),
+                    'status': result.get('status', 'unknown'),
+                    'total_time': result.get('total_time', 0),
+                    'errors': result.get('errors', [])
+                })
 
             # Update summary counts
             status = result.get('status', 'failed')
@@ -265,7 +274,8 @@ def print_final_summary(summary: dict):
     if failed:
         print("Failed experiments:")
         for r in failed:
-            print(f"  - {r['algorithm']} + {r['trajectory']}")
+            mode = r.get('pose_mode', 'unknown')
+            print(f"  - {r['algorithm']} + {r['trajectory']} + {mode}")
             for err in r.get('errors', [])[:2]:
                 print(f"      {err[:60]}")
 
@@ -276,8 +286,14 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    # Run all experiments (all algorithms × all trajectories)
+    # Run all experiments (all algorithms × all trajectories, odometry mode)
     python3 run_all.py
+
+    # Run with SLAM feedback
+    python3 run_all.py --pose_modes slam
+
+    # Run comparative study (odometry vs SLAM vs oracle)
+    python3 run_all.py --pose_modes odometry slam ground_truth
 
     # Run only slam_toolbox
     python3 run_all.py --algorithms slam_toolbox
@@ -305,6 +321,14 @@ Examples:
         '--trajectories', '-t',
         nargs='+',
         help='Trajectory names (default: all in ~/thesis/trajectories/)'
+    )
+
+    parser.add_argument(
+        '--pose_modes', '-p',
+        nargs='+',
+        choices=['odometry', 'slam', 'ground_truth'],
+        default=['odometry'],
+        help='Pose feedback modes to test (default: odometry)'
     )
 
     parser.add_argument(
@@ -361,6 +385,7 @@ Examples:
     summary = run_batch(
         algorithms=args.algorithms,
         trajectories=trajectories,
+        pose_modes=args.pose_modes,
         output_base=output_base,
         timeout=args.timeout,
         speed_scale=args.speed_scale,

@@ -11,15 +11,20 @@ Usage:
 
 Output:
     summary.csv with columns:
-    - algorithm, trajectory, status
+    - algorithm, trajectory, pose_mode, status
     - ate_rmse, ate_mean, ate_median, ate_std, ate_min, ate_max
     - rpe_rmse, rpe_mean, rpe_median, rpe_std, rpe_min, rpe_max, rpe_delta_m
     - gt_poses, est_poses, trajectory_time
+    - completion_rate, intended_distance, actual_distance, final_distance_to_goal, goal_reached
+    - avg_cpu, peak_cpu, avg_memory_mb, peak_memory_mb
+    - mean_cte, max_cte, rmse_cte
+    - mean_pos_delta, max_pos_delta, mean_angle_delta
 """
 
 import argparse
 import csv
 import json
+import math
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -81,13 +86,16 @@ def load_metrics(result_dir: Path) -> dict:
         'directory': str(result_dir),
         'algorithm': None,
         'trajectory': None,
+        'pose_mode': None,
         'status': 'unknown',
+        # ATE metrics
         'ate_rmse': None,
         'ate_mean': None,
         'ate_median': None,
         'ate_std': None,
         'ate_min': None,
         'ate_max': None,
+        # RPE metrics
         'rpe_rmse': None,
         'rpe_mean': None,
         'rpe_median': None,
@@ -95,9 +103,30 @@ def load_metrics(result_dir: Path) -> dict:
         'rpe_min': None,
         'rpe_max': None,
         'rpe_delta_m': None,
+        # Pose counts and time
         'gt_poses': None,
         'est_poses': None,
         'trajectory_time': None,
+        # Completion metrics (Task 3.5)
+        'completion_rate': None,
+        'intended_distance': None,
+        'actual_distance': None,
+        'final_distance_to_goal': None,
+        'goal_reached': None,
+        # Resource usage metrics (Task 3.4)
+        'avg_cpu': None,
+        'peak_cpu': None,
+        'avg_memory_mb': None,
+        'peak_memory_mb': None,
+        # CTE metrics (Task 3.2)
+        'mean_cte': None,
+        'max_cte': None,
+        'rmse_cte': None,
+        # Odom vs SLAM delta metrics (Task 3.1)
+        'mean_pos_delta': None,
+        'max_pos_delta': None,
+        'mean_angle_delta': None,
+        # Error tracking
         'errors': []
     }
 
@@ -115,7 +144,15 @@ def load_metrics(result_dir: Path) -> dict:
                     data['algorithm'] = run_info.get('algorithm')
                 if not data['trajectory']:
                     data['trajectory'] = run_info.get('trajectory')
+                data['pose_mode'] = run_info.get('pose_mode')
                 data['trajectory_time'] = run_info.get('trajectory_time')
+
+                # Resource usage stats (Task 3.4)
+                data['avg_cpu'] = run_info.get('avg_cpu')
+                data['peak_cpu'] = run_info.get('peak_cpu')
+                data['avg_memory_mb'] = run_info.get('avg_memory_mb')
+                data['peak_memory_mb'] = run_info.get('peak_memory_mb')
+
                 if run_info.get('errors'):
                     data['errors'].extend(run_info['errors'])
         except Exception as e:
@@ -152,6 +189,15 @@ def load_metrics(result_dir: Path) -> dict:
                 data['rpe_max'] = rpe.get('max')
                 data['rpe_delta_m'] = rpe.get('delta_m')
 
+            # Completion metrics (Task 3.5)
+            completion = metrics.get('completion')
+            if completion:
+                data['completion_rate'] = completion.get('completion_rate')
+                data['intended_distance'] = completion.get('intended_distance')
+                data['actual_distance'] = completion.get('actual_distance')
+                data['final_distance_to_goal'] = completion.get('final_distance_to_goal')
+                data['goal_reached'] = completion.get('goal_reached')
+
             if metrics.get('errors'):
                 data['errors'].extend(metrics['errors'])
 
@@ -161,6 +207,42 @@ def load_metrics(result_dir: Path) -> dict:
     else:
         data['errors'].append('metrics.json not found')
         data['status'] = 'failed'
+
+    # Load path_deviation.json for CTE metrics (Task 3.2)
+    cte_file = result_dir / 'path_deviation.json'
+    if cte_file.exists():
+        try:
+            with open(cte_file, 'r') as f:
+                cte_data = json.load(f)
+            cte_metrics = cte_data.get('metrics')
+            if cte_metrics:
+                data['mean_cte'] = cte_metrics.get('mean_cte')
+                data['max_cte'] = cte_metrics.get('max_cte')
+                data['rmse_cte'] = cte_metrics.get('rmse_cte')
+        except Exception as e:
+            data['errors'].append(f'Failed to load path_deviation.json: {e}')
+
+    # Load odom_slam_delta.csv and compute summary stats (Task 3.1)
+    delta_file = result_dir / 'odom_slam_delta.csv'
+    if delta_file.exists():
+        try:
+            pos_deltas = []
+            angle_deltas = []
+            with open(delta_file, 'r') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if 'pos_delta' in row and row['pos_delta']:
+                        pos_deltas.append(float(row['pos_delta']))
+                    if 'angle_delta' in row and row['angle_delta']:
+                        angle_deltas.append(float(row['angle_delta']))
+
+            if pos_deltas:
+                data['mean_pos_delta'] = sum(pos_deltas) / len(pos_deltas)
+                data['max_pos_delta'] = max(pos_deltas)
+            if angle_deltas:
+                data['mean_angle_delta'] = sum(angle_deltas) / len(angle_deltas)
+        except Exception as e:
+            data['errors'].append(f'Failed to load odom_slam_delta.csv: {e}')
 
     return data
 
@@ -180,13 +262,16 @@ def write_csv(results: list[dict], output_file: Path):
     columns = [
         'algorithm',
         'trajectory',
+        'pose_mode',
         'status',
+        # ATE metrics
         'ate_rmse',
         'ate_mean',
         'ate_median',
         'ate_std',
         'ate_min',
         'ate_max',
+        # RPE metrics
         'rpe_rmse',
         'rpe_mean',
         'rpe_median',
@@ -194,9 +279,30 @@ def write_csv(results: list[dict], output_file: Path):
         'rpe_min',
         'rpe_max',
         'rpe_delta_m',
+        # Pose counts and time
         'gt_poses',
         'est_poses',
         'trajectory_time',
+        # Completion metrics (Task 3.5)
+        'completion_rate',
+        'intended_distance',
+        'actual_distance',
+        'final_distance_to_goal',
+        'goal_reached',
+        # Resource usage (Task 3.4)
+        'avg_cpu',
+        'peak_cpu',
+        'avg_memory_mb',
+        'peak_memory_mb',
+        # CTE metrics (Task 3.2)
+        'mean_cte',
+        'max_cte',
+        'rmse_cte',
+        # Odom vs SLAM delta (Task 3.1)
+        'mean_pos_delta',
+        'max_pos_delta',
+        'mean_angle_delta',
+        # Directory reference
         'directory'
     ]
 
@@ -220,9 +326,9 @@ def write_csv(results: list[dict], output_file: Path):
 
 def print_summary_table(results: list[dict]):
     """Print a human-readable summary table."""
-    print("\n" + "=" * 80)
+    print("\n" + "=" * 100)
     print("AGGREGATED RESULTS SUMMARY")
-    print("=" * 80)
+    print("=" * 100)
 
     # Group by algorithm
     by_algo = {}
@@ -234,21 +340,26 @@ def print_summary_table(results: list[dict]):
 
     for algo, algo_results in sorted(by_algo.items()):
         print(f"\n{algo.upper()}")
-        print("-" * 60)
-        print(f"{'Trajectory':<20} {'Status':<10} {'ATE RMSE':>12} {'RPE RMSE':>12}")
-        print("-" * 60)
+        print("-" * 100)
+        print(f"{'Trajectory':<16} {'Mode':<8} {'Status':<8} {'ATE RMSE':>10} {'RPE RMSE':>10} "
+              f"{'Compl%':>8} {'CTE':>8} {'CPU%':>8}")
+        print("-" * 100)
 
-        for r in sorted(algo_results, key=lambda x: x.get('trajectory') or ''):
-            traj = (r['trajectory'] or 'unknown')[:20]
-            status = r['status'][:10]
+        for r in sorted(algo_results, key=lambda x: (x.get('trajectory') or '', x.get('pose_mode') or '')):
+            traj = (r['trajectory'] or 'unknown')[:16]
+            mode = (r['pose_mode'] or '-')[:8]
+            status = r['status'][:8]
             ate = f"{r['ate_rmse']:.4f}" if r['ate_rmse'] is not None else 'N/A'
             rpe = f"{r['rpe_rmse']:.4f}" if r['rpe_rmse'] is not None else 'N/A'
-            print(f"{traj:<20} {status:<10} {ate:>12} {rpe:>12}")
+            compl = f"{r['completion_rate']*100:.1f}" if r['completion_rate'] is not None else 'N/A'
+            cte = f"{r['mean_cte']:.4f}" if r['mean_cte'] is not None else 'N/A'
+            cpu = f"{r['avg_cpu']:.1f}" if r['avg_cpu'] is not None else 'N/A'
+            print(f"{traj:<16} {mode:<8} {status:<8} {ate:>10} {rpe:>10} {compl:>8} {cte:>8} {cpu:>8}")
 
     # Overall statistics
-    print("\n" + "=" * 80)
+    print("\n" + "=" * 100)
     print("OVERALL STATISTICS")
-    print("=" * 80)
+    print("=" * 100)
 
     total = len(results)
     success = sum(1 for r in results if r['status'] == 'success')
@@ -260,6 +371,12 @@ def print_summary_table(results: list[dict]):
     print(f"  Partial: {partial}")
     print(f"  Failed:  {failed}")
 
+    # Goals reached
+    with_completion = [r for r in results if r['goal_reached'] is not None]
+    if with_completion:
+        goals_reached = sum(1 for r in with_completion if r['goal_reached'])
+        print(f"  Goals reached: {goals_reached}/{len(with_completion)}")
+
     # Best results per algorithm
     for algo, algo_results in sorted(by_algo.items()):
         successful = [r for r in algo_results if r['ate_rmse'] is not None]
@@ -267,9 +384,17 @@ def print_summary_table(results: list[dict]):
             best = min(successful, key=lambda x: x['ate_rmse'])
             print(f"\nBest {algo} (by ATE RMSE):")
             print(f"  Trajectory: {best['trajectory']}")
+            if best['pose_mode']:
+                print(f"  Pose Mode: {best['pose_mode']}")
             print(f"  ATE RMSE: {best['ate_rmse']:.4f} m")
             if best['rpe_rmse'] is not None:
                 print(f"  RPE RMSE: {best['rpe_rmse']:.4f} m")
+            if best['completion_rate'] is not None:
+                print(f"  Completion: {best['completion_rate']*100:.1f}%")
+            if best['mean_cte'] is not None:
+                print(f"  Mean CTE: {best['mean_cte']:.4f} m")
+            if best['avg_cpu'] is not None:
+                print(f"  Avg CPU: {best['avg_cpu']:.1f}%")
 
 
 def main():

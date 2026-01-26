@@ -1,2 +1,0 @@
-[console_scripts]
-gt_publisher = gt_publisher.gt_publisher_node:main

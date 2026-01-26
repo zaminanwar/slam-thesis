@@ -1,345 +1,191 @@
-# Project State
+# Project State - SLAM Thesis Implementation
 
-**Last Updated**: 2026-01-25T02:25:00
-**Last Claude Instance**: M7 Evaluation Implementation (Opus 4.5)
-**Current Milestone**: M8 (Experiment Runner)
-**Current Task**: T8.1 - run_one.py
+**Last Updated**: 2026-01-25T17:40:00
+**Last Claude Instance**: Implementation (Opus 4.5)
+**Current Phase**: Phase 4 - COMPLETE
+**Next Action**: Analyze results, create visualizations, write thesis
 
-## Status Summary
+---
 
-| Status | Count |
-|--------|-------|
-| Completed | 20 |
-| In Progress | 0 |
-| Pending | 9 |
-| Blocked | 0 |
+## QUICK START FOR NEW CONTEXT
 
-## Progress
+**Read this section first. It tells you exactly what to do next.**
 
-### EPIC 0 - Foundation ✓
-- [x] T0.1 - Create workspace + repo skeleton
-- [x] T0.2 - Create ROS2 packages (empty but correct)
+### Current Status
+- **Phase 4 COMPLETE**: All 6 experiments finished (2 algos × 3 trajectories)
+- Results aggregated in `~/thesis/ros2_ws/thesis_results.csv`
+- Full metrics available in `results/slam_experiments/` directories
 
-### EPIC 1 - Rover Model + Simulation ✓
-- [x] T1.1 - Implement minimal rover URDF/Xacro
-- [x] T1.2 - Add RViz config
-- [x] T1.3 - Implement Gazebo simulation launch
-- [x] T1.4 - Publish 2D LiDAR /scan
+### Final Results Summary
 
-### EPIC 2 - Odometry + Motion Control ✓
-- [x] T2.1 - Wheel odometry (/odom + TF)
-- [x] T2.2 - Trajectory CSV files
-- [x] T2.3 - Pure pursuit trajectory follower
-- [x] T2.4 - Trajectory launch file
+| Algorithm | Trajectory | ATE RMSE | RPE RMSE | Completion | Goal |
+|-----------|------------|----------|----------|------------|------|
+| slam_toolbox | traj_01_easy | **1.64 cm** | 4.99 cm | 99.5% | ✅ |
+| slam_toolbox | traj_02_loop | **3.92 cm** | 3.15 cm | 101.2% | ✅ |
+| slam_toolbox | traj_03_complex | **2.95 cm** | 7.93 cm | 78.5% | ❌ |
+| cartographer | traj_01_easy | 2.33 cm | 2.81 cm | 100.5% | ✅ |
+| cartographer | traj_02_loop | **278.5 cm** | 50.2 cm | 107.1% | ✅ |
+| cartographer | traj_03_complex | **231.0 cm** | 61.2 cm | 78.1% | ✅ |
 
-### EPIC 3 - Ground Truth ✓
-- [x] T3.1 - Ground truth publisher node
+### Key Findings
 
-### EPIC 4 - Dataset Recording ✓
-- [x] T4.1 - Dataset recorder launch
-- [x] T4.2 - Condition system
-- [x] T4.3 - Bag replay wrapper
+1. **slam_toolbox significantly outperforms cartographer** on longer trajectories
+   - Sub-4cm ATE across all trajectories
+   - Consistent localization throughout
 
-### EPIC 5 - SLAM Pipelines ✓
-- [x] T5.1 - slam_toolbox bag replay
-- [x] T5.2 - Cartographer 2D bag replay
+2. **Cartographer struggles with loop closure** on longer paths
+   - Excellent on short trajectory (2.33cm ATE)
+   - Severe drift on traj_02_loop and traj_03_complex (>2m ATE)
 
-### EPIC 6 - Trajectory Export ✓
-- [x] T6.1 - TF-based trajectory exporter
-- [x] T6.2 - Export integration
+3. **traj_03_complex (56m) is challenging**
+   - Both algorithms only achieve ~78% completion
+   - Timeout at 300s before reaching goal
 
-### EPIC 7 - Evaluation ✓
-- [x] T7.1 - Per-run evaluation script
-- [x] T7.2 - Failure handling
+4. **Goals reached**: 5/6 experiments
+   - Only slam_toolbox traj_03_complex timed out before goal
 
-### EPIC 8 - Experiment Runner ← CURRENT
-- [ ] T8.1 - run_one.py
-- [ ] T8.2 - run_all.py
-- [ ] T8.3 - aggregate_results.py
+---
 
-### EPIC 9 - Documentation
-- [ ] T9.1 - Top-level README
-- [ ] T9.2 - Validation checklist
+## NEXT STEPS
 
-## Milestone Validation Status
+### Phase 5: Analysis & Visualization
+```bash
+# Generate trajectory plots using evo
+cd ~/thesis/ros2_ws
 
-| Milestone | Script | Last Run | Status |
-|-----------|--------|----------|--------|
-| M0 | validate_m0.sh | 2026-01-24 | **PASSED** |
-| M1 | validate_m1.sh | 2026-01-24 | **PASSED** (script + manual) |
-| M2 | validate_m2.sh | 2026-01-24 | **PASSED** |
-| M3 | validate_m3.sh | 2026-01-24 | **PASSED** (script + manual) |
-| M4 | validate_m4.sh | 2026-01-25 | **PASSED** |
-| M5 | validate_m5.sh | 2026-01-25 | **PASSED** (17/17 tests) |
-| M6 | validate_m6.sh | 2026-01-25 | **PASSED** (22/22 tests) |
-| M7 | validate_m7.sh | 2026-01-25 | **PASSED** (21/21 tests) |
-| M8 | validate_m8.sh | - | Not created yet |
-| M9 | validate_m9.sh | - | Not created yet |
+# Plot ATE comparison for slam_toolbox
+evo_ape tum results/slam_experiments/slam_toolbox_traj_01_easy_slam/gt.tum \
+    results/slam_experiments/slam_toolbox_traj_01_easy_slam/est.tum -p --save_plot ape_slam_toolbox.pdf
 
-## Next Action
+# Generate comparison table
+python3 src/slam_thesis/experiment_runner/scripts/aggregate_results.py \
+    --results_dir results/slam_experiments --output thesis_results.csv
+```
 
-**For new Claude instance:**
-Implement M8 (Experiment Runner):
-- T8.1: run_one.py - Single experiment orchestrator (sim + SLAM + eval)
-- T8.2: run_all.py - Batch runner for all trajectory × algorithm combinations
-- T8.3: aggregate_results.py - Combine metrics into summary CSV
+### Optional: Run Additional Reps
+```bash
+# For statistical significance, run 3 reps each
+# Current run_all.py runs 1 rep per configuration
+# To add reps, run the batch multiple times with different output dirs:
+for i in 1 2 3; do
+    python3 src/slam_thesis/experiment_runner/scripts/run_all.py \
+        --pose_mode slam --output_dir results/slam_experiments_rep${i}
+done
+```
 
-**IMPORTANT FOR M8:**
-- Use live simulation workflow (bag replay has TF timing issues)
-- Orchestrate: sim.launch.py → gt_publisher → SLAM eval launch → trajectory → wait → evaluate_run.py
-- Each run should produce: gt.tum, est.tum, metrics.json
-- Output structure: results/{algo}_{trajectory}_{condition}/
+---
 
-## Environment
+## DETAILED RESULTS
+
+### slam_toolbox Performance
+| Trajectory | ATE RMSE | ATE Max | RPE RMSE | Time | Completion |
+|------------|----------|---------|----------|------|------------|
+| traj_01_easy | 0.0164m | 0.0881m | 0.0499m | 112s | 99.5% |
+| traj_02_loop | 0.0392m | 0.1283m | 0.0315m | 194s | 101.2% |
+| traj_03_complex | 0.0295m | 0.0925m | 0.0793m | 304s | 78.5% |
+
+### cartographer Performance
+| Trajectory | ATE RMSE | ATE Max | RPE RMSE | Time | Completion |
+|------------|----------|---------|----------|------|------------|
+| traj_01_easy | 0.0233m | 0.0888m | 0.0281m | 115s | 100.5% |
+| traj_02_loop | 2.7852m | 4.7036m | 0.5016m | 201s | 107.1% |
+| traj_03_complex | 2.3100m | 3.7219m | 0.6119m | 301s | 78.1% |
+
+---
+
+## OUTPUT FILES
+
+### Results Location
+```
+~/thesis/ros2_ws/results/slam_experiments/
+├── batch_summary.json              # Batch run metadata
+├── cartographer_traj_01_easy_slam/
+├── cartographer_traj_02_loop_slam/
+├── cartographer_traj_03_complex_slam/
+├── slam_toolbox_traj_01_easy_slam/
+├── slam_toolbox_traj_02_loop_slam/
+└── slam_toolbox_traj_03_complex_slam/
+
+~/thesis/ros2_ws/thesis_results.csv  # Aggregated results CSV
+```
+
+### Per-Experiment Files
+```
+{algo}_{traj}_slam/
+├── gt.tum                    # Ground truth trajectory (TUM format)
+├── est.tum                   # SLAM estimate trajectory (TUM format)
+├── metrics.json              # ATE, RPE, completion metrics
+├── run_info.json             # Metadata + timing
+└── odom_slam_delta.csv       # Odometry vs SLAM correction data
+```
+
+---
+
+## SLAM TUNING (Applied This Session)
+
+### slam_toolbox.yaml
+```yaml
+distance_variance_penalty: 1.5      # Was 0.5
+angle_variance_penalty: 1.5         # Was 1.0
+correlation_search_space_dimension: 1.0  # Was 0.5
+minimum_travel_distance: 0.15       # Was 0.3
+minimum_travel_heading: 0.15        # Was 0.3
+loop_match_maximum_variance_coarse: 1.5  # Was 3.0
+link_match_minimum_response_fine: 0.25   # Was 0.1
+```
+
+### cartographer_2d.lua
+```lua
+loop_closure_translation_weight = 5e4   # Was 1.1e4
+loop_closure_rotation_weight = 5e5      # Was 1e5
+```
+
+---
+
+## TRAJECTORY DESIGN
+
+All trajectories use outer edges (±4 coordinates) for 1m+ obstacle clearance:
+
+| Trajectory | Distance | Path Description |
+|------------|----------|------------------|
+| traj_01_easy | 16m | Rectangle in upper-left quadrant |
+| traj_02_loop | 40m | Full perimeter at ±4 coordinates |
+| traj_03_complex | 56m | Figure-8 using outer edges |
+
+---
+
+## ENVIRONMENT
 
 - **Ubuntu**: 24.04
-- **ROS2**: Jazzy (saved in ~/thesis/.ros_distro)
-- **Gazebo**: Harmonic (gz-sim) via ros_gz
-- **WSL2 display**: DISPLAY=:0, WAYLAND_DISPLAY=wayland-0
+- **ROS2**: Jazzy
+- **Gazebo**: Harmonic (gz-sim)
+- **WSL2 display**: `export DISPLAY=:0 && export WAYLAND_DISPLAY=wayland-0`
+- **Python tools**: evo 1.34.2
 
-## Recent Changes
+---
 
-| Date | Task | Change | Notes |
-|------|------|--------|-------|
-| 2026-01-24 | T0.1 | Created workspace structure | ~/thesis/ with all directories |
-| 2026-01-24 | T0.2 | Created all 7 package skeletons | All package.xml, setup.py, CMakeLists.txt |
-| 2026-01-24 | - | Created .claude/ continuity system | 5 files |
-| 2026-01-24 | - | Updated for Ubuntu 24.04/Jazzy | Script detects distro |
-| 2026-01-24 | M0 | **VALIDATED** | colcon build passes |
-| 2026-01-24 | T1.1 | Created rover URDF/Xacro | base_link, laser_frame, diff_drive, LiDAR |
-| 2026-01-24 | T1.2 | Created RViz config | rover.rviz |
-| 2026-01-24 | T1.3 | Created sim.launch.py + simple.sdf | Gazebo Harmonic world with obstacles |
-| 2026-01-24 | T1.4 | LiDAR publishes /scan | Via gz-sim gpu_lidar sensor |
-| 2026-01-24 | M1 | **VALIDATED** | validate_m1.sh passes |
-| 2026-01-24 | - | Fixed Jazzy launch bug | ParameterValue wrapper (see AD-010) |
-| 2026-01-24 | M1 | **MANUAL TEST PASSED** | Robot moves, /scan works, /cmd_vel works |
-| 2026-01-24 | T2.1 | Verified odometry | diff_drive plugin publishes /odom + TF |
-| 2026-01-24 | T2.2 | Created trajectory CSVs | traj_01_easy, traj_02_loop, traj_03_complex |
-| 2026-01-24 | T2.3 | Implemented trajectory follower | Pure pursuit algorithm |
-| 2026-01-24 | T2.4 | Created launch file | follow_trajectory.launch.py |
-| 2026-01-24 | M2 | **VALIDATED** | validate_m2.sh passes |
-| 2026-01-24 | T3.1 | Created gt_publisher_node.py | Subscribes to Gazebo pose, publishes /gt_pose + TF |
-| 2026-01-24 | T3.1 | Added pose bridge to sim.launch.py | /model/rover/pose bridged from Gazebo |
-| 2026-01-24 | T3.1 | Created gt_publisher.launch.py | Launch file for GT publisher |
-| 2026-01-24 | M3 | **VALIDATED** | validate_m3.sh passes |
-| 2026-01-24 | T3.1 | Added PosePublisher plugin to rover URDF | Required for Gazebo to publish /model/rover/pose |
-| 2026-01-24 | M3 | **MANUAL TEST PASSED** | /gt_pose updates, TF map_gt->base_footprint works |
-| 2026-01-25 | T4.1 | Created record_dataset.launch.py | Orchestrates sim + GT + trajectory + rosbag |
-| 2026-01-25 | T4.2 | Created condition system | baseline, high_speed, odom_degraded |
-| 2026-01-25 | T4.2 | Created odom_noise_node.py | Noise + drift injection for degraded odom |
-| 2026-01-25 | T4.3 | Created replay_bag.launch.py | Bag playback with sim time + robot_state_publisher |
-| 2026-01-25 | M4 | **VALIDATED** | validate_m4.sh passes |
-| 2026-01-25 | T5.1 | Created slam_toolbox config + launch | slam_toolbox.yaml, slam_toolbox.launch.py |
-| 2026-01-25 | T5.2 | Created Cartographer config + launch | cartographer_2d.lua, cartographer.launch.py |
-| 2026-01-25 | M5 | **VALIDATED** | validate_m5.sh passes (17/17 tests) |
-| 2026-01-25 | T5.1 | Created slam_toolbox_live.launch.py | Live sim version - WORKING |
-| 2026-01-25 | T5.2 | Created cartographer_live.launch.py | Live sim version - WORKING |
-| 2026-01-25 | - | Investigated bag replay TF issues | ROS 2 Jazzy architectural limitation |
-| 2026-01-25 | - | Added restamp_tf: true to slam_toolbox.yaml | Helps with TF sync (partial fix) |
-| 2026-01-25 | T6.1 | Created traj_exporter_node.py | TF-based trajectory exporter with TUM format output |
-| 2026-01-25 | T6.1 | Fixed gt_publisher frame | Changed from base_link to base_footprint |
-| 2026-01-25 | T6.2 | Created slam_toolbox_eval.launch.py | slam_toolbox + trajectory exporter |
-| 2026-01-25 | T6.2 | Created cartographer_eval.launch.py | Cartographer + trajectory exporter |
-| 2026-01-25 | M6 | **VALIDATED** | validate_m6.sh passes (22/22 tests) |
-| 2026-01-25 | T7.1 | Created evaluate_run.py | ATE/RPE evaluation using evo tool |
-| 2026-01-25 | T7.2 | Added error handling | Missing files, alignment failures, insufficient data |
-| 2026-01-25 | M7 | **VALIDATED** | validate_m7.sh passes (21/21 tests) |
+## KEY FILE LOCATIONS
 
-## Key Files Created in M1
-
+### Experiment Scripts
 ```
-rover_description/
-├── urdf/rover.urdf.xacro      # Differential drive robot with LiDAR
-├── rviz/rover.rviz            # Visualization config
-└── launch/display.launch.py   # RViz launch
-
-rover_sim/
-├── worlds/simple.sdf          # 10x10m room with obstacles
-└── launch/sim.launch.py       # Gazebo Harmonic + ros_gz_bridge
+~/thesis/ros2_ws/src/slam_thesis/experiment_runner/scripts/
+├── run_one.py              # Single experiment (timeout=300s)
+├── run_all.py              # Batch runner (timeout=300s)
+├── aggregate_results.py    # Results aggregation
+└── evaluate_run.py         # ATE/RPE calculation
 ```
 
-## Key Files Created in M2
-
+### SLAM Configs
 ```
-trajectories/
-├── traj_01_easy.csv           # Simple square trajectory (6 waypoints)
-├── traj_02_loop.csv           # Loop with turns (11 waypoints)
-└── traj_03_complex.csv        # Complex path (17 waypoints)
-
-rover_control/
-├── rover_control/trajectory_follower.py  # Pure pursuit node
-└── launch/follow_trajectory.launch.py    # Trajectory launch
+~/thesis/ros2_ws/src/slam_thesis/slam_launch/config/
+├── slam_toolbox.yaml       # TUNED
+└── cartographer_2d.lua     # TUNED
 ```
 
-## Key Files Created in M3
-
+### Trajectories
 ```
-gt_publisher/
-├── gt_publisher/gt_publisher_node.py  # Ground truth from Gazebo pose
-└── launch/gt_publisher.launch.py      # GT publisher launch
-
-rover_description/
-└── urdf/rover.urdf.xacro              # Added PosePublisher plugin for GT
-
-rover_sim/
-└── launch/sim.launch.py               # Updated with /model/rover/pose bridge
-```
-
-## Key Files Created in M4
-
-```
-experiment_runner/
-├── launch/record_dataset.launch.py           # Record bags with GT + sensors
-├── launch/replay_bag.launch.py               # Replay bags for SLAM evaluation
-├── config/topics_to_record.yaml              # Topics list for rosbag record
-└── experiment_runner/odom_noise_node.py      # Noise injection for degraded odom
-```
-
-## Key Files for M5
-
-```
-slam_launch/
-├── config/slam_toolbox.yaml           # slam_toolbox configuration (includes restamp_tf: true)
-├── config/cartographer_2d.lua         # Cartographer configuration
-├── launch/slam_toolbox.launch.py      # slam_toolbox with bag replay (NOT WORKING)
-├── launch/cartographer.launch.py      # Cartographer with bag replay (NOT WORKING)
-├── launch/slam_toolbox_live.launch.py # slam_toolbox with live Gazebo (WORKING)
-└── launch/cartographer_live.launch.py # Cartographer with live Gazebo (WORKING)
-```
-
-## M5 Notes (Completed)
-
-**Installed SLAM packages:**
-- ros-jazzy-slam-toolbox (2.8.3)
-- ros-jazzy-cartographer-ros (2.0.9003)
-
-**Key implementation details:**
-- Odometry publishes `odom → base_footprint` (not `base_link`)
-- Both SLAM configs use `base_footprint` as base_frame/tracking_frame
-
-### CRITICAL: Live Simulation vs Bag Replay
-
-| Mode | Status | Why |
-|------|--------|-----|
-| **Live Simulation** | ✅ WORKS | Gazebo provides /clock synchronously; all nodes start with consistent time |
-| **Bag Replay** | ❌ BROKEN | TF2 cannot reconcile wall-time static transforms with sim-time scan messages |
-
-**Root cause:** ROS 2's `use_sim_time` is a per-node parameter (unlike ROS 1's global setting).
-When bag replay starts, there's a race condition:
-1. robot_state_publisher publishes static TFs with wall time or waits for /clock
-2. Bag starts publishing /clock from recorded time (near 0)
-3. slam_toolbox's message filter can't find laser_frame transform at sim time
-
-This is a **known ROS 2 Jazzy architectural limitation**, not a bug in our code.
-Reference: https://discourse.openrobotics.org/t/ros2-use-sim-time-leads-to-inconsistent-clocks/42030
-
-**Recommendation: USE LIVE SIMULATION for SLAM evaluation.**
-
-**Live simulation usage (WORKING):**
-```bash
-# Terminal 1: Start Gazebo simulation
-ros2 launch rover_sim sim.launch.py
-
-# Terminal 2: Start SLAM
-ros2 launch slam_launch slam_toolbox_live.launch.py
-# OR
-ros2 launch slam_launch cartographer_live.launch.py
-
-# Terminal 3 (optional): Follow trajectory
-ros2 launch rover_control follow_trajectory.launch.py trajectory:=traj_01_easy
-```
-
-**Bag replay usage (NOT WORKING - kept for reference):**
-```bash
-ros2 launch slam_launch slam_toolbox.launch.py bag:=traj_01_easy__baseline
-ros2 launch slam_launch cartographer.launch.py bag:=traj_01_easy__baseline
-```
-
-**Test bag available:** `~/thesis/ros2_ws/bags/traj_01_easy__baseline` (15.8s, all required topics)
-
-## Key Files for M6
-
-```
-traj_exporter/
-├── traj_exporter/traj_exporter_node.py  # TF-based trajectory exporter
-└── launch/traj_exporter.launch.py       # Standalone exporter launch
-
-slam_launch/
-├── launch/slam_toolbox_eval.launch.py   # slam_toolbox + exporter (WORKING)
-└── launch/cartographer_eval.launch.py   # Cartographer + exporter (WORKING)
-
-gt_publisher/
-└── gt_publisher/gt_publisher_node.py    # Updated: now uses base_footprint frame
-```
-
-## M6 Notes (Completed)
-
-**Key implementation details:**
-- Ground truth now publishes `map_gt → base_footprint` (not `base_link`)
-- SLAM estimate lookup: `map → base_footprint`
-- Both transforms use same child frame for fair comparison
-- TUM format output: `timestamp tx ty tz qx qy qz qw`
-
-**Usage:**
-```bash
-# Terminal 1: Start simulation
-ros2 launch rover_sim sim.launch.py
-
-# Terminal 2: Start ground truth publisher
-ros2 launch gt_publisher gt_publisher.launch.py
-
-# Terminal 3: Start SLAM + trajectory export
-ros2 launch slam_launch slam_toolbox_eval.launch.py output_dir:=~/thesis/ros2_ws/results/test
-# OR
-ros2 launch slam_launch cartographer_eval.launch.py output_dir:=~/thesis/ros2_ws/results/test
-
-# Terminal 4 (optional): Follow trajectory
-ros2 launch rover_control follow_trajectory.launch.py trajectory:=traj_01_easy
-
-# When done, Ctrl+C to save files (gt.tum, est.tum)
-```
-
-**Output files:**
-- `gt.tum`: Ground truth trajectory (map_gt → base_footprint)
-- `est.tum`: SLAM estimate trajectory (map → base_footprint)
-
-## Key Files for M7
-
-```
-experiment_runner/
-└── scripts/evaluate_run.py    # ATE/RPE evaluation script
-
-scripts/
-└── validate_m7.sh             # Milestone 7 validation (21 tests)
-```
-
-## M7 Notes (Completed)
-
-**evo tool installed:**
-- evo 1.34.2 (user install: ~/.local/bin/)
-- Uses `evo_ape` for Absolute Trajectory Error
-- Uses `evo_rpe` for Relative Pose Error
-
-**evaluate_run.py features:**
-- Accepts `--run_dir` (expects gt.tum, est.tum) or explicit `--gt`/`--est` paths
-- Outputs `metrics.json` with ATE/RPE statistics (rmse, mean, median, std, min, max)
-- Adaptive RPE delta selection based on trajectory length
-- Error handling: missing files, alignment failures, insufficient data
-- Exit code: 0 for success/partial, 1 for failure
-
-**Usage:**
-```bash
-# After running SLAM + trajectory export:
-python3 ~/thesis/ros2_ws/src/slam_thesis/experiment_runner/scripts/evaluate_run.py \
-    --run_dir ~/thesis/ros2_ws/results/test --verbose
-
-# Output (metrics.json):
-{
-  "status": "success",
-  "ate": {"rmse": 0.05, "mean": 0.04, "median": 0.045, ...},
-  "rpe": {"rmse": 0.02, "mean": 0.015, "delta_m": 1.0, ...},
-  "gt_poses": 150,
-  "est_poses": 148,
-  "errors": []
-}
+~/thesis/trajectories/
+├── traj_01_easy.csv        # 16m
+├── traj_02_loop.csv        # 40m
+└── traj_03_complex.csv     # 56m
 ```

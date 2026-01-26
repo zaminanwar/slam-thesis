@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-01-25T17:34:03.640797",
+  "gt_file": "results/slam_experiments/cartographer_traj_03_complex_slam/gt.tum",
+  "est_file": "results/slam_experiments/cartographer_traj_03_complex_slam/est.tum",
+  "status": "success",
+  "errors": [],
+  "gt_poses": 4755,
+  "est_poses": 4490,
+  "ate": {
+    "rmse": 2.3099883849056546,
+    "mean": 2.165915939305848,
+    "median": 2.1466467919001806,
+    "std": 0.8030283197122635,
+    "min": 0.7269943448225226,
+    "max": 3.721858213599821,
+    "sse": 23953.51201307326
+  },
+  "rpe": {
+    "rmse": 0.6119495839007822,
+    "mean": 0.4260081701698306,
+    "median": 0.14346210421159078,
+    "std": 0.4393168926696231,
+    "min": 0.001656259907085013,
+    "max": 1.4470738805585401,
+    "sse": 15.353774022689963,
+    "delta_m": 1.0
+  },
+  "completion": {
+    "intended_distance": 56.0,
+    "actual_distance": 43.728180039397735,
+    "completion_rate": 0.7808603578463881,
+    "final_distance_to_goal": 0.25369541301726367,
+    "goal_reached": true,
+    "start_distance": 0.0006243877000710376
+  }
+}

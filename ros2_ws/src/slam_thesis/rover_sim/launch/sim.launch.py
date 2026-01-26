@@ -42,6 +42,12 @@ def generate_launch_description():
         description='Use simulation (Gazebo) clock'
     )
 
+    spawn_yaw_arg = DeclareLaunchArgument(
+        'spawn_yaw',
+        default_value='0.0',
+        description='Initial robot yaw (radians). 0=East, 1.5708=North, 3.1416=West, -1.5708=South'
+    )
+
     # Paths
     urdf_path = os.path.join(pkg_rover_description, 'urdf', 'rover.urdf.xacro')
     world_path = PathJoinSubstitution([
@@ -68,7 +74,8 @@ def generate_launch_description():
         }.items()
     )
 
-    # Spawn robot in Gazebo
+    # Spawn robot in Gazebo (default: facing east/+X, yaw=0)
+    # Use spawn_yaw argument to set initial orientation
     spawn_robot = Node(
         package='ros_gz_sim',
         executable='create',
@@ -78,6 +85,7 @@ def generate_launch_description():
             '-x', '0.0',
             '-y', '0.0',
             '-z', '0.1',
+            '-Y', LaunchConfiguration('spawn_yaw'),
         ],
         output='screen'
     )
@@ -123,6 +131,7 @@ def generate_launch_description():
         # Arguments
         world_arg,
         use_sim_time_arg,
+        spawn_yaw_arg,
 
         # Environment
         gz_resource_path,

@@ -1,0 +1,34 @@
+# Build artifacts
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Temporary files
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+
+# Frame graphs (generated)
+*.gv
+*.pdf
+
+# Bags (large binary files)
+ros2_ws/bags/
+
+# Keep only final experiment results, ignore intermediate runs
+ros2_ws/results/batch_*/
+ros2_ws/results/slam_toolbox_traj_*_2026*/
+ros2_ws/results/cartographer_traj_*_2026*/
+
+# But keep the final slam_experiments directory
+!ros2_ws/results/slam_experiments/

@@ -1,0 +1,84 @@
+{
+  "start_time": "2026-01-25T17:10:18.421449",
+  "algorithms": [
+    "slam_toolbox",
+    "cartographer"
+  ],
+  "trajectories": [
+    "traj_01_easy",
+    "traj_02_loop",
+    "traj_03_complex"
+  ],
+  "pose_modes": [
+    "slam"
+  ],
+  "total_experiments": 6,
+  "output_dir": "results/slam_experiments",
+  "results": [
+    {
+      "algorithm": "slam_toolbox",
+      "trajectory": "traj_01_easy",
+      "pose_mode": "slam",
+      "output_dir": "results/slam_experiments/slam_toolbox_traj_01_easy_slam",
+      "status": "success",
+      "total_time": 138.4393708705902,
+      "errors": []
+    },
+    {
+      "algorithm": "slam_toolbox",
+      "trajectory": "traj_02_loop",
+      "pose_mode": "slam",
+      "output_dir": "results/slam_experiments/slam_toolbox_traj_02_loop_slam",
+      "status": "success",
+      "total_time": 219.67750930786133,
+      "errors": []
+    },
+    {
+      "algorithm": "slam_toolbox",
+      "trajectory": "traj_03_complex",
+      "pose_mode": "slam",
+      "output_dir": "results/slam_experiments/slam_toolbox_traj_03_complex_slam",
+      "status": "success",
+      "total_time": 330.77195596694946,
+      "errors": [
+        "Trajectory timeout after 304.3s"
+      ]
+    },
+    {
+      "algorithm": "cartographer",
+      "trajectory": "traj_01_easy",
+      "pose_mode": "slam",
+      "output_dir": "results/slam_experiments/cartographer_traj_01_easy_slam",
+      "status": "success",
+      "total_time": 145.10044121742249,
+      "errors": []
+    },
+    {
+      "algorithm": "cartographer",
+      "trajectory": "traj_02_loop",
+      "pose_mode": "slam",
+      "output_dir": "results/slam_experiments/cartographer_traj_02_loop_slam",
+      "status": "success",
+      "total_time": 231.95443558692932,
+      "errors": []
+    },
+    {
+      "algorithm": "cartographer",
+      "trajectory": "traj_03_complex",
+      "pose_mode": "slam",
+      "output_dir": "results/slam_experiments/cartographer_traj_03_complex_slam",
+      "status": "success",
+      "total_time": 335.2235298156738,
+      "errors": [
+        "Trajectory timeout after 300.6s"
+      ]
+    }
+  ],
+  "summary": {
+    "success": 6,
+    "partial": 0,
+    "failed": 0
+  },
+  "end_time": "2026-01-25T17:34:04.591661",
+  "total_time_seconds": 1426.170212
+}

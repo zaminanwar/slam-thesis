@@ -1,0 +1,61 @@
+{
+  "algorithm": "slam_toolbox",
+  "trajectory": "traj_03_complex",
+  "pose_mode": "slam",
+  "output_dir": "results/slam_experiments/slam_toolbox_traj_03_complex_slam",
+  "start_time": "2026-01-25T17:16:26.583219",
+  "status": "success",
+  "errors": [
+    "Trajectory timeout after 304.3s"
+  ],
+  "trajectory_time": 304.325368642807,
+  "trajectory_result": "timeout",
+  "end_time": "2026-01-25T17:21:54.399028",
+  "resource_usage": {
+    "avg_cpu": 60.5390243902439,
+    "peak_cpu": 68.5,
+    "min_cpu": 0.0,
+    "avg_memory_mb": 2367.894150152439,
+    "peak_memory_mb": 2445.72265625,
+    "min_memory_mb": 1395.203125,
+    "sample_count": 328
+  },
+  "gt_poses": 4892,
+  "est_poses": 4864,
+  "metrics": {
+    "timestamp": "2026-01-25T17:21:56.352114",
+    "gt_file": "results/slam_experiments/slam_toolbox_traj_03_complex_slam/gt.tum",
+    "est_file": "results/slam_experiments/slam_toolbox_traj_03_complex_slam/est.tum",
+    "status": "success",
+    "errors": [],
+    "gt_poses": 4892,
+    "est_poses": 4864,
+    "ate": {
+      "rmse": 0.029529999853844423,
+      "mean": 0.022459632571887756,
+      "median": 0.01460516159613068,
+      "std": 0.019172527118349582,
+      "min": 0.00023363123708939666,
+      "max": 0.09245342841864888,
+      "sse": 4.240637594722835
+    },
+    "rpe": {
+      "rmse": 0.07934231931566157,
+      "mean": 0.044985433460602485,
+      "median": 0.01608509724689016,
+      "std": 0.06535682375047087,
+      "min": 1.5227172013764691e-05,
+      "max": 0.24681646480710903,
+      "sse": 0.264398552644313,
+      "delta_m": 1.0
+    },
+    "completion": {
+      "intended_distance": 56.0,
+      "actual_distance": 43.95604469782056,
+      "completion_rate": 0.7849293696039386,
+      "final_distance_to_goal": 3.9880912985757986,
+      "goal_reached": false,
+      "start_distance": 0.0
+    }
+  }
+}
