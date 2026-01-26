@@ -1,9 +1,9 @@
 # Project State - SLAM Thesis Implementation
 
-**Last Updated**: 2026-01-26T02:00:00
-**Last Claude Instance**: Trajectory Corner Turn Debugging (Opus 4.5)
-**Current Phase**: Phase 6 - DEBUGGING CORNER TURN ISSUE
-**Next Action**: Fix robot not turning at (4, -4) corner
+**Last Updated**: 2026-01-26T02:30:00
+**Last Claude Instance**: Loop Closure Investigation (Opus 4.5)
+**Current Phase**: Phase 6 - LOOP CLOSURE INTERFERENCE IDENTIFIED
+**Next Action**: Run with `--pose_mode odometry` to bypass loop closure issue
 
 ---
 
@@ -11,152 +11,147 @@
 
 **Read this section first. It tells you exactly what to do next.**
 
-### Current Status: DEBUGGING CORNER TURN ISSUE
+### Current Status: LOOP CLOSURE INTERFERENCE WITH CONTROL
 
-**PROBLEM**: Robot fails to turn at waypoint (4, -4) in traj_02_loop
-- Robot travels down right side (y: 4 → -4) at x=4
-- At corner (4, -4), robot should turn LEFT toward (2, -4)
-- Instead, robot keeps going STRAIGHT and hits SOUTH WALL (y = -5)
+**PROBLEM IDENTIFIED**: Robot completes ~89% of traj_02_loop but gets stuck at the final corner (0, 4) when returning to origin.
 
-**WHAT WORKS vs FAILS**:
-| Trajectory | Path | Result |
-|------------|------|--------|
-| traj_01_easy | Left side only (x ≤ 0), 16m | ✅ Works |
-| traj_01_mirror | Right side, short (4m at x=4), 16m | ✅ Works |
-| traj_02_loop | Full perimeter, long (8m at x=4), 40m | ❌ Fails at (4,-4) |
+**ROOT CAUSE**: Loop closure interference with SLAM-based control
+- When robot revisits (0, 4) area (previously seen at trajectory start)
+- Cartographer's loop closure detects the revisited location
+- High loop closure weights (28,176 translation, 454,522 rotation) cause sudden pose corrections
+- SLAM pose "jumps" confuse the controller, causing it to spin in place
 
-**KEY INSIGHT**: traj_01_mirror goes to x=4 and turns at (4,0) successfully.
-traj_02_loop goes to x=4 but fails to turn at (4,-4) after 8m of travel.
+**WHAT WE TRIED**:
+| Change | ATE RMSE | Completion | Result |
+|--------|----------|------------|--------|
+| Dense world (20 obstacles) | 1.4 cm | 88.9% | Much better SLAM, still stuck |
+| + Smooth arc turns | 1.1 cm | 89.5% | Slightly better, still stuck |
+| + Lookahead 0.1m | (interrupted) | - | Loop closure identified as cause |
 
-**ATTEMPTED FIXES (didn't work)**:
-1. Scaled trajectory to ±3.7m - still fails
-2. Reduced speed from 0.3 to 0.2 m/s - still fails
-3. Increased goal_tolerance from 0.15m to 0.4m - still fails
+**KEY INSIGHT**: SLAM accuracy is excellent (1.1-1.4 cm ATE). The problem is NOT SLAM drift - it's loop closure corrections causing pose jumps that the controller can't handle.
 
-**SUSPECTED ROOT CAUSE**:
-The Pure Pursuit controller or waypoint advancement logic has an issue with:
-- Long straight segments before corners
-- OR the specific geometry of the (4,-4) corner
-- OR SLAM pose lag after extended travel
+### What To Do Next
 
-### What Needs To Be Done
-
-**DEBUG THE TURN FAILURE**:
-1. Add logging to see what the controller thinks is happening at (4,-4)
-2. Check if waypoint index advances (does it think it reached (4,-4)?)
-3. Check the angle calculation to next waypoint (2,-4)
-4. Consider if lookahead_distance (0.5m) is appropriate
-
-**FILES TO INVESTIGATE**:
-- `rover_control/rover_control/trajectory_follower.py` - Pure Pursuit logic
-- Lines 453-470: waypoint advancement
-- Lines 354-436: _pure_pursuit() turn calculation
-- Line 56: goal_tolerance (changed to 0.4m)
-
-**CURRENT TRAJECTORY FILE** (traj_02_loop.csv is at ±4m scale):
+**RUN WITH ODOMETRY MODE** (recommended):
+```bash
+cd ~/thesis/ros2_ws
+source /opt/ros/jazzy/setup.bash && source install/setup.bash
+python3 src/slam_thesis/experiment_runner/scripts/run_one.py \
+  --algo cartographer --trajectory traj_02_loop \
+  --world simple_dense.sdf --pose_mode odometry \
+  --timeout 400 --verbose
 ```
-...
-4.0,-2.0,-1.5708,0.2   # approaching corner
-4.0,-4.0,3.1416,0.2    # THE PROBLEM CORNER - should turn left here
-2.0,-4.0,3.1416,0.2    # should go here but robot goes straight instead
-...
-```
+
+This provides:
+- Consistent control baseline (odometry doesn't have loop closure jumps)
+- Fair SLAM evaluation (loop closure still happens, recorded in est.tum)
+- Comparable results across algorithms
 
 ---
 
-## CHANGES MADE THIS SESSION
+## CHANGES MADE THIS SESSION (M9 Commit)
 
-### Goal Tolerance Increased
+### 1. Optuna Tuning System Added
+Location: `ros2_ws/src/slam_thesis/experiment_runner/scripts/tuning/`
+- `config_generators.py` - Research-based baselines with ±10% tuning ranges
+- `optuna_tuner.py` - Multi-phase tuning (coarse → refine → validate)
+- Cartographer tuning achieved 0.73 cm ATE on short trajectories
+
+### 2. Dense Obstacle World Created
+File: `ros2_ws/src/slam_thesis/rover_sim/worlds/simple_dense.sdf`
+- 20 obstacles distributed throughout room
+- Outer edges (between trajectory and walls): 9 obstacles at x=±4.5, y=±4.5
+- Interior quadrants: 8 obstacles
+- Center area: 2 obstacles
+- Significantly reduces SLAM drift in corridor environments
+
+### 3. Smooth Arc Trajectories
+File: `trajectories/traj_02_loop.csv`
+- Sharp 90° corners replaced with gradual arc waypoints
+- Each turn has 4-5 intermediate points along ~0.3m radius arc
+- Speed reduced to 0.15 m/s during turns
+
+### 4. Controller Updates
 File: `rover_control/rover_control/trajectory_follower.py`
-- Changed `goal_tolerance` from 0.15m to 0.4m (line 56)
-- Rebuilt with `colcon build --packages-select rover_control`
-- **Did not fix the issue**
+- lookahead_distance: 1.5m → 0.5m → 0.1m (reduced for tighter turns)
 
-### Trajectory Testing
-- traj_02_loop.csv currently at ±4m scale (reverted from ±3.7m for testing)
-- Created traj_01_mirror.csv (mirrors traj_01 to +X side) - this WORKS
-- Created traj_02_loop_original.csv for testing
-
-### Previous: Trajectories Scaled to 0.925x (not currently active)
-The 0.925x scaling was validated as obstacle-safe but didn't fix the turn issue.
-
-### Previous Session: RTF Changed to 1.0
-Files modified (already rebuilt):
-- `rover_sim/worlds/simple.sdf`: `real_time_factor` 10.0 → 1.0
-- `rover_sim/worlds/empty_room.sdf`: `real_time_factor` 10.0 → 1.0
-
-This means experiments now run at real-time (not 10x). A 37m trajectory at 0.3 m/s takes ~123s real time.
-
----
-
-## TUNING RESULTS (STILL VALID)
-
-Tuning was done on traj_01_easy (16m) which works fine:
-
-| Algorithm | Validated ATE | Std Dev |
-|-----------|---------------|---------|
-| **Cartographer** | **0.54 cm** | ± 0.17 cm |
-| SLAM Toolbox | 1.77 cm | ± 0.24 cm |
-
-Best configs are saved and symlinked:
-```
-~/thesis/ros2_ws/results/tuning/slam_toolbox_tuning_20260125_210455/best_slam_toolbox_config.yaml
-~/thesis/ros2_ws/results/tuning/cartographer_tuning_20260125_213727/best_cartographer_config.lua
-```
+File: `experiment_runner/scripts/run_one.py`
+- Added `--world` parameter to specify world file
 
 ---
 
 ## KEY FILES
 
-### Trajectory Files (debugging state)
+### Trajectory Files
 ```
 ~/thesis/trajectories/
-├── traj_micro_tune.csv       # ~5m - OK (small, for tuning)
-├── traj_01_easy.csv          # 16m - OK (left side only)
-├── traj_01_mirror.csv        # 16m - OK (right side, short segment) ← NEW, WORKS
-├── traj_02_loop.csv          # 40m - FAILING at (4,-4) corner (currently ±4m scale)
-├── traj_02_loop_original.csv # 40m - backup of original
-└── traj_03_complex.csv       # 56m - not tested yet (still at ±3.7m scale)
+├── traj_micro_tune.csv       # ~5m - for tuning
+├── traj_01_easy.csv          # 16m - left side only, works
+├── traj_01_mirror.csv        # 16m - right side, works
+├── traj_02_loop.csv          # 40m - full perimeter, NOW HAS SMOOTH TURNS
+├── traj_02_loop_original.csv # 40m - backup with sharp corners
+├── traj_03_complex.csv       # 56m - figure-8
+└── traj_tune_long_straight.csv # 12m straight for tuning
 ```
 
-### World Files (walls at ±5m)
+### World Files
 ```
-~/thesis/ros2_ws/src/slam_thesis/rover_sim/worlds/simple.sdf
-~/thesis/ros2_ws/src/slam_thesis/rover_sim/worlds/empty_room.sdf
+~/thesis/ros2_ws/src/slam_thesis/rover_sim/worlds/
+├── simple.sdf          # Original - 5 obstacles
+└── simple_dense.sdf    # NEW - 20 obstacles for better SLAM features
 ```
 
 ### Experiment Scripts
 ```
 ~/thesis/ros2_ws/src/slam_thesis/experiment_runner/scripts/
-├── run_one.py              # Single experiment
+├── run_one.py              # Single experiment (has --world param now)
 ├── run_all.py              # Batch runner
 ├── evaluate_run.py         # ATE/RPE calculation
-└── aggregate_results.py    # Generates summary.csv
+├── aggregate_results.py    # Summary generation
+└── tuning/                 # NEW - Optuna tuning system
+    ├── config_generators.py
+    ├── optuna_tuner.py
+    └── visualize_tuning.py
 ```
 
 ---
 
-## CRITICAL KNOWLEDGE
+## CURRENT PARAMETERS
 
-### Trajectory Format
-```csv
-x,y,yaw,speed
-0.0,0.0,1.5708,0.3
-0.0,2.0,1.5708,0.3
-...
+### Trajectory Follower
+```python
+lookahead_distance = 0.1    # meters (reduced from 1.5)
+goal_tolerance = 0.4        # meters
+max_angular_velocity = 0.8  # rad/s
 ```
-- Coordinates in meters
-- Yaw in radians
-- Speed in m/s
 
-### Room Dimensions
-- Walls at x = ±5m, y = ±5m
-- Safe trajectory zone: ±3m to ±3.5m (leave 1.5-2m margin)
+### Cartographer (Tuned - from optuna)
+```lua
+motion_filter_max_distance = 0.055
+ceres_translation_weight = 107.9
+loop_closure_translation_weight = 28175.9  -- HIGH - causes pose jumps
+loop_closure_rotation_weight = 454522.7    -- VERY HIGH
+optimize_every_n_nodes = 23
+```
 
-### pose_mode parameter
-- `--pose_modes slam` → Uses SLAM-corrected poses (has some drift)
-- `--pose_modes ground_truth` → Uses perfect poses (no drift, for debugging)
-- `--pose_modes odometry` → Uses raw wheel odometry (lots of drift)
+---
+
+## TUNING RESULTS
+
+| Algorithm | Validated ATE | Std Dev | Config Location |
+|-----------|---------------|---------|-----------------|
+| **Cartographer** | **0.73 cm** | ± 0.02 cm | `results/tuning/cartographer_tuning_*/` |
+| SLAM Toolbox | 1.77 cm | ± 0.24 cm | `results/tuning/slam_toolbox_tuning_*/` |
+
+---
+
+## TEST RESULTS WITH DENSE WORLD
+
+| Configuration | ATE RMSE | Completion | Notes |
+|--------------|----------|------------|-------|
+| SLAM pose + 1.5m lookahead | 1.40 cm | 88.9% | Stuck at (0,4) turn |
+| SLAM pose + smooth turns | 1.13 cm | 89.5% | Still stuck at (0,4) |
+| **Odometry pose** | TBD | TBD | **Try this next** |
 
 ---
 
@@ -166,22 +161,45 @@ x,y,yaw,speed
 - **ROS2**: Jazzy
 - **Gazebo**: Harmonic (gz-sim)
 - **Python**: 3.12
-- **Simulation speed**: 1.0x real-time (changed from 10x)
+- **Simulation speed**: 1.0x real-time
+
+---
+
+## COMMANDS
+
+### Run experiment with odometry control (RECOMMENDED NEXT)
+```bash
+cd ~/thesis/ros2_ws
+source /opt/ros/jazzy/setup.bash && source install/setup.bash
+python3 src/slam_thesis/experiment_runner/scripts/run_one.py \
+  --algo cartographer --trajectory traj_02_loop \
+  --world simple_dense.sdf --pose_mode odometry \
+  --timeout 400 --verbose
+```
+
+### Run Optuna tuning
+```bash
+python3 src/slam_thesis/experiment_runner/scripts/tuning/optuna_tuner.py \
+  --algorithm cartographer --mode quick
+```
+
+### Rebuild packages
+```bash
+colcon build --packages-select rover_control rover_sim experiment_runner --symlink-install
+```
 
 ---
 
 ## WHAT NEXT SESSION SHOULD DO
 
-1. **Debug why robot doesn't turn at (4,-4)**:
-   - Add debug logging to trajectory_follower.py to see:
-     - Current waypoint index when approaching corner
-     - Distance to next waypoint
-     - Calculated angle to target
-     - Whether it enters rotate-in-place mode (Zone 1)
+1. **Run with odometry mode** to verify trajectory completes without loop closure interference
 
-2. **Potential fixes to try**:
-   - Increase lookahead_distance from 0.5m to 1.0m
-   - Add explicit corner handling in the controller
-   - Use a different waypoint advancement strategy (look-ahead based vs distance based)
+2. **If successful**, run comparison experiments:
+   - Both algorithms (cartographer, slam_toolbox)
+   - Dense world (simple_dense.sdf)
+   - Odometry control mode
+   - Multiple trajectories (traj_01_easy, traj_02_loop, traj_03_complex)
 
-3. **Once turn issue is fixed**: Run final comparison experiments
+3. **Alternative**: If odometry mode works, could also try:
+   - Reducing loop closure weights in Cartographer config
+   - Adding pose smoothing to filter out sudden jumps
