@@ -1,0 +1,29 @@
+# Topics to record for SLAM evaluation
+# These topics are recorded during dataset capture and replayed for offline SLAM
+
+# Core sensor topics (required for SLAM)
+sensor_topics:
+  - /scan           # 2D LiDAR scans
+  - /odom           # Wheel odometry
+
+# Transform topics
+tf_topics:
+  - /tf             # Dynamic transforms (odom->base_link)
+  - /tf_static      # Static transforms (base_link->laser_frame)
+
+# Ground truth for evaluation
+ground_truth_topics:
+  - /gt_pose        # Ground truth pose from Gazebo
+
+# Timing
+clock_topics:
+  - /clock          # Simulation clock (required for use_sim_time)
+
+# All topics combined (used by rosbag record)
+all_topics:
+  - /scan
+  - /odom
+  - /tf
+  - /tf_static
+  - /gt_pose
+  - /clock

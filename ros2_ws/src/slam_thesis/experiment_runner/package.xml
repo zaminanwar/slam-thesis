@@ -11,7 +11,10 @@
 
   <depend>rclpy</depend>
   <depend>std_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
   <depend>ros2bag</depend>
+  <depend>python3-numpy</depend>
 
   <exec_depend>rover_sim</exec_depend>
   <exec_depend>rover_control</exec_depend>
