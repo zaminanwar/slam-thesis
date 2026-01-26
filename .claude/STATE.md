@@ -1,17 +1,17 @@
 # Project State
 
-**Last Updated**: 2026-01-26T14:45:00
-**Last Claude Instance**: M5 Implementation (Opus 4.5)
-**Current Milestone**: M6 (Trajectory Export)
-**Current Task**: T6.1 - TF-based trajectory exporter
+**Last Updated**: 2026-01-26T23:00:00
+**Last Claude Instance**: M6 Implementation (Opus 4.5)
+**Current Milestone**: M7 (Evaluation)
+**Current Task**: T7.1 - Per-run evaluation script
 
 ## Status Summary
 
 | Status | Count |
 |--------|-------|
-| Completed | 16 |
+| Completed | 18 |
 | In Progress | 0 |
-| Pending | 13 |
+| Pending | 11 |
 | Blocked | 0 |
 
 ## Progress
@@ -44,11 +44,11 @@
 - [x] T5.1 - slam_toolbox bag replay
 - [x] T5.2 - Cartographer 2D bag replay
 
-### EPIC 6 - Trajectory Export ← CURRENT
-- [ ] T6.1 - TF-based trajectory exporter
-- [ ] T6.2 - Export integration
+### EPIC 6 - Trajectory Export ✓
+- [x] T6.1 - TF-based trajectory exporter
+- [x] T6.2 - Export integration
 
-### EPIC 7 - Evaluation
+### EPIC 7 - Evaluation ← CURRENT
 - [ ] T7.1 - Per-run evaluation script
 - [ ] T7.2 - Failure handling
 
@@ -71,7 +71,7 @@
 | M3 | validate_m3.sh | 2026-01-24 | **PASSED** (script + manual) |
 | M4 | - | 2026-01-26 | **PASSED** (build + launch args verified) |
 | M5 | - | 2026-01-26 | **PASSED** (build + launch args verified) |
-| M6 | validate_m6.sh | - | Not created yet |
+| M6 | - | 2026-01-26 | **PASSED** (build + launch args verified) |
 | M7 | validate_m7.sh | - | Not created yet |
 | M8 | validate_m8.sh | - | Not created yet |
 | M9 | validate_m9.sh | - | Not created yet |
@@ -79,14 +79,14 @@
 ## Next Action
 
 **For new Claude instance:**
-Implement M6 (Trajectory Export):
-- T6.1: TF-based trajectory exporter node
-- T6.2: Export integration with SLAM launch files
+Implement M7 (Evaluation):
+- T7.1: Per-run evaluation script (using evo library)
+- T7.2: Failure handling
 
-The trajectory exporter should:
-- Subscribe to TF (map->base_footprint transform)
-- Output timestamped pose trajectory to CSV
-- Support configurable output path and TF frame names
+The evaluation script should:
+- Compare estimated trajectory against ground truth
+- Compute ATE/RPE metrics using evo library
+- Output JSON results for aggregation
 
 ## Environment
 
@@ -139,12 +139,36 @@ ros2 launch slam_launch cartographer.launch.py bag_path:=/path/to/bag
 ros2 launch slam_launch slam_toolbox.launch.py bag_path:=/path/to/bag rate:=0.5
 ```
 
-## Key Files for M6
+## Key Files Created in M6
 
 ```
 traj_exporter/
-├── traj_exporter/traj_exporter_node.py  # TF trajectory exporter node
+├── traj_exporter/traj_exporter_node.py  # TF trajectory exporter node (TUM format)
 └── launch/export_trajectory.launch.py   # Export launch file
+```
+
+**M6 Usage:**
+```bash
+# Export trajectory standalone
+ros2 launch traj_exporter export_trajectory.launch.py output_file:=/path/to/traj.txt
+
+# With custom frame names
+ros2 launch traj_exporter export_trajectory.launch.py \
+  output_file:=/path/to/traj.txt \
+  parent_frame:=map \
+  child_frame:=base_link
+
+# Run node directly
+ros2 run traj_exporter traj_exporter --ros-args \
+  -p output_file:=/path/to/traj.txt \
+  -p parent_frame:=map \
+  -p child_frame:=base_footprint
+```
+
+**TUM Format Output:**
+```
+# timestamp tx ty tz qx qy qz qw
+1234567890.123456789 1.234 2.345 0.000 0.000 0.000 0.707 0.707
 ```
 
 ## Git Branch Info
