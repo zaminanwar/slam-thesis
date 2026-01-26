@@ -1,17 +1,17 @@
 # Project State
 
-**Last Updated**: 2026-01-26T14:35:00
-**Last Claude Instance**: M4 Implementation (Opus 4.5)
-**Current Milestone**: M5 (SLAM Pipelines)
-**Current Task**: T5.1 - slam_toolbox bag replay
+**Last Updated**: 2026-01-26T14:45:00
+**Last Claude Instance**: M5 Implementation (Opus 4.5)
+**Current Milestone**: M6 (Trajectory Export)
+**Current Task**: T6.1 - TF-based trajectory exporter
 
 ## Status Summary
 
 | Status | Count |
 |--------|-------|
-| Completed | 14 |
+| Completed | 16 |
 | In Progress | 0 |
-| Pending | 15 |
+| Pending | 13 |
 | Blocked | 0 |
 
 ## Progress
@@ -40,11 +40,11 @@
 - [x] T4.2 - Condition system (baseline/degraded with odom noise)
 - [x] T4.3 - Bag replay wrapper
 
-### EPIC 5 - SLAM Pipelines ← CURRENT
-- [ ] T5.1 - slam_toolbox bag replay
-- [ ] T5.2 - Cartographer 2D bag replay
+### EPIC 5 - SLAM Pipelines ✓
+- [x] T5.1 - slam_toolbox bag replay
+- [x] T5.2 - Cartographer 2D bag replay
 
-### EPIC 6 - Trajectory Export
+### EPIC 6 - Trajectory Export ← CURRENT
 - [ ] T6.1 - TF-based trajectory exporter
 - [ ] T6.2 - Export integration
 
@@ -70,7 +70,7 @@
 | M2 | validate_m2.sh | 2026-01-24 | **PASSED** |
 | M3 | validate_m3.sh | 2026-01-24 | **PASSED** (script + manual) |
 | M4 | - | 2026-01-26 | **PASSED** (build + launch args verified) |
-| M5 | validate_m5.sh | - | Not created yet |
+| M5 | - | 2026-01-26 | **PASSED** (build + launch args verified) |
 | M6 | validate_m6.sh | - | Not created yet |
 | M7 | validate_m7.sh | - | Not created yet |
 | M8 | validate_m8.sh | - | Not created yet |
@@ -79,14 +79,14 @@
 ## Next Action
 
 **For new Claude instance:**
-Implement M5 (SLAM Pipelines):
-- T5.1: slam_toolbox launch file for bag replay evaluation
-- T5.2: Cartographer 2D launch file for bag replay evaluation
+Implement M6 (Trajectory Export):
+- T6.1: TF-based trajectory exporter node
+- T6.2: Export integration with SLAM launch files
 
-Both should:
-- Accept bag_path parameter
-- Run SLAM algorithm on replayed sensor data
-- Publish map and SLAM-corrected pose for evaluation
+The trajectory exporter should:
+- Subscribe to TF (map->base_footprint transform)
+- Output timestamped pose trajectory to CSV
+- Support configurable output path and TF frame names
 
 ## Environment
 
@@ -117,14 +117,34 @@ ros2 launch experiment_runner record_dataset.launch.py trajectory:=traj_01_easy.
 ros2 launch experiment_runner replay_bag.launch.py bag_path:=/path/to/bag
 ```
 
-## Key Files for M5
+## Key Files Created in M5
 
 ```
 slam_launch/
-├── config/slam_toolbox.yaml           # slam_toolbox parameters
-├── config/cartographer_2d.lua         # Cartographer parameters
+├── config/slam_toolbox.yaml           # slam_toolbox parameters (5cm resolution, loop closure enabled)
+├── config/cartographer_2d.lua         # Cartographer parameters (2D SLAM with scan matching)
 ├── launch/slam_toolbox.launch.py      # slam_toolbox with bag replay
 └── launch/cartographer.launch.py      # Cartographer with bag replay
+```
+
+**M5 Usage:**
+```bash
+# Run slam_toolbox on a recorded bag
+ros2 launch slam_launch slam_toolbox.launch.py bag_path:=/path/to/bag
+
+# Run Cartographer on a recorded bag
+ros2 launch slam_launch cartographer.launch.py bag_path:=/path/to/bag
+
+# With slower playback for debugging
+ros2 launch slam_launch slam_toolbox.launch.py bag_path:=/path/to/bag rate:=0.5
+```
+
+## Key Files for M6
+
+```
+traj_exporter/
+├── traj_exporter/traj_exporter_node.py  # TF trajectory exporter node
+└── launch/export_trajectory.launch.py   # Export launch file
 ```
 
 ## Git Branch Info
