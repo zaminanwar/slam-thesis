@@ -53,9 +53,9 @@ class TrajectoryFollower(Node):
 
         # Declare parameters - basic
         self.declare_parameter('trajectory_file', '')
-        self.declare_parameter('goal_tolerance', 0.15)
+        self.declare_parameter('goal_tolerance', 0.4)
         self.declare_parameter('speed_scale', 1.0)
-        self.declare_parameter('lookahead_distance', 0.5)
+        self.declare_parameter('lookahead_distance', 0.1)
 
         # Declare parameters - velocity control
         self.declare_parameter('max_linear_velocity', 0.5)   # m/s

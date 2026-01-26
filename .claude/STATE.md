@@ -1,9 +1,9 @@
 # Project State - SLAM Thesis Implementation
 
-**Last Updated**: 2026-01-25T17:50:00
-**Last Claude Instance**: Implementation (Opus 4.5)
-**Current Phase**: Phase 4 - COMPLETE (pushed to GitHub)
-**Next Action**: Phase 5 - Generate visualizations & analyze for thesis
+**Last Updated**: 2026-01-26T02:00:00
+**Last Claude Instance**: Trajectory Corner Turn Debugging (Opus 4.5)
+**Current Phase**: Phase 6 - DEBUGGING CORNER TURN ISSUE
+**Next Action**: Fix robot not turning at (4, -4) corner
 
 ---
 
@@ -11,155 +11,152 @@
 
 **Read this section first. It tells you exactly what to do next.**
 
-### Current Status
-- **Phase 4 COMPLETE**: All 6 experiments finished (2 algos × 3 trajectories)
-- Results aggregated in `~/thesis/ros2_ws/thesis_results.csv`
-- Full metrics available in `results/slam_experiments/` directories
+### Current Status: DEBUGGING CORNER TURN ISSUE
 
-### Final Results Summary
+**PROBLEM**: Robot fails to turn at waypoint (4, -4) in traj_02_loop
+- Robot travels down right side (y: 4 → -4) at x=4
+- At corner (4, -4), robot should turn LEFT toward (2, -4)
+- Instead, robot keeps going STRAIGHT and hits SOUTH WALL (y = -5)
 
-| Algorithm | Trajectory | ATE RMSE | RPE RMSE | Completion | Goal |
-|-----------|------------|----------|----------|------------|------|
-| slam_toolbox | traj_01_easy | **1.64 cm** | 4.99 cm | 99.5% | ✅ |
-| slam_toolbox | traj_02_loop | **3.92 cm** | 3.15 cm | 101.2% | ✅ |
-| slam_toolbox | traj_03_complex | **2.95 cm** | 7.93 cm | 78.5% | ❌ |
-| cartographer | traj_01_easy | 2.33 cm | 2.81 cm | 100.5% | ✅ |
-| cartographer | traj_02_loop | **278.5 cm** | 50.2 cm | 107.1% | ✅ |
-| cartographer | traj_03_complex | **231.0 cm** | 61.2 cm | 78.1% | ✅ |
+**WHAT WORKS vs FAILS**:
+| Trajectory | Path | Result |
+|------------|------|--------|
+| traj_01_easy | Left side only (x ≤ 0), 16m | ✅ Works |
+| traj_01_mirror | Right side, short (4m at x=4), 16m | ✅ Works |
+| traj_02_loop | Full perimeter, long (8m at x=4), 40m | ❌ Fails at (4,-4) |
 
-### Key Findings
+**KEY INSIGHT**: traj_01_mirror goes to x=4 and turns at (4,0) successfully.
+traj_02_loop goes to x=4 but fails to turn at (4,-4) after 8m of travel.
 
-1. **slam_toolbox significantly outperforms cartographer** on longer trajectories
-   - Sub-4cm ATE across all trajectories
-   - Consistent localization throughout
+**ATTEMPTED FIXES (didn't work)**:
+1. Scaled trajectory to ±3.7m - still fails
+2. Reduced speed from 0.3 to 0.2 m/s - still fails
+3. Increased goal_tolerance from 0.15m to 0.4m - still fails
 
-2. **Cartographer struggles with loop closure** on longer paths
-   - Excellent on short trajectory (2.33cm ATE)
-   - Severe drift on traj_02_loop and traj_03_complex (>2m ATE)
+**SUSPECTED ROOT CAUSE**:
+The Pure Pursuit controller or waypoint advancement logic has an issue with:
+- Long straight segments before corners
+- OR the specific geometry of the (4,-4) corner
+- OR SLAM pose lag after extended travel
 
-3. **traj_03_complex (56m) is challenging**
-   - Both algorithms only achieve ~78% completion
-   - Timeout at 300s before reaching goal
+### What Needs To Be Done
 
-4. **Goals reached**: 5/6 experiments
-   - Only slam_toolbox traj_03_complex timed out before goal
+**DEBUG THE TURN FAILURE**:
+1. Add logging to see what the controller thinks is happening at (4,-4)
+2. Check if waypoint index advances (does it think it reached (4,-4)?)
+3. Check the angle calculation to next waypoint (2,-4)
+4. Consider if lookahead_distance (0.5m) is appropriate
 
----
+**FILES TO INVESTIGATE**:
+- `rover_control/rover_control/trajectory_follower.py` - Pure Pursuit logic
+- Lines 453-470: waypoint advancement
+- Lines 354-436: _pure_pursuit() turn calculation
+- Line 56: goal_tolerance (changed to 0.4m)
 
-## NEXT STEPS
-
-### Phase 5: Analysis & Visualization
-```bash
-# Generate trajectory plots using evo
-cd ~/thesis/ros2_ws
-
-# Plot ATE comparison for slam_toolbox
-evo_ape tum results/slam_experiments/slam_toolbox_traj_01_easy_slam/gt.tum \
-    results/slam_experiments/slam_toolbox_traj_01_easy_slam/est.tum -p --save_plot ape_slam_toolbox.pdf
-
-# Generate comparison table
-python3 src/slam_thesis/experiment_runner/scripts/aggregate_results.py \
-    --results_dir results/slam_experiments --output thesis_results.csv
+**CURRENT TRAJECTORY FILE** (traj_02_loop.csv is at ±4m scale):
 ```
-
-### Optional: Run Additional Reps
-```bash
-# For statistical significance, run 3 reps each
-# Current run_all.py runs 1 rep per configuration
-# To add reps, run the batch multiple times with different output dirs:
-for i in 1 2 3; do
-    python3 src/slam_thesis/experiment_runner/scripts/run_all.py \
-        --pose_mode slam --output_dir results/slam_experiments_rep${i}
-done
+...
+4.0,-2.0,-1.5708,0.2   # approaching corner
+4.0,-4.0,3.1416,0.2    # THE PROBLEM CORNER - should turn left here
+2.0,-4.0,3.1416,0.2    # should go here but robot goes straight instead
+...
 ```
 
 ---
 
-## DETAILED RESULTS
+## CHANGES MADE THIS SESSION
 
-### slam_toolbox Performance
-| Trajectory | ATE RMSE | ATE Max | RPE RMSE | Time | Completion |
-|------------|----------|---------|----------|------|------------|
-| traj_01_easy | 0.0164m | 0.0881m | 0.0499m | 112s | 99.5% |
-| traj_02_loop | 0.0392m | 0.1283m | 0.0315m | 194s | 101.2% |
-| traj_03_complex | 0.0295m | 0.0925m | 0.0793m | 304s | 78.5% |
+### Goal Tolerance Increased
+File: `rover_control/rover_control/trajectory_follower.py`
+- Changed `goal_tolerance` from 0.15m to 0.4m (line 56)
+- Rebuilt with `colcon build --packages-select rover_control`
+- **Did not fix the issue**
 
-### cartographer Performance
-| Trajectory | ATE RMSE | ATE Max | RPE RMSE | Time | Completion |
-|------------|----------|---------|----------|------|------------|
-| traj_01_easy | 0.0233m | 0.0888m | 0.0281m | 115s | 100.5% |
-| traj_02_loop | 2.7852m | 4.7036m | 0.5016m | 201s | 107.1% |
-| traj_03_complex | 2.3100m | 3.7219m | 0.6119m | 301s | 78.1% |
+### Trajectory Testing
+- traj_02_loop.csv currently at ±4m scale (reverted from ±3.7m for testing)
+- Created traj_01_mirror.csv (mirrors traj_01 to +X side) - this WORKS
+- Created traj_02_loop_original.csv for testing
 
-### Resource Usage (CPU & Memory)
-| Algorithm | Avg CPU | Peak CPU | Avg Memory | Peak Memory |
-|-----------|---------|----------|------------|-------------|
-| slam_toolbox | 60.5% | 69.4% | 2,347 MB | 2,416 MB |
-| cartographer | 59.6% | 65.6% | 2,349 MB | 2,479 MB |
+### Previous: Trajectories Scaled to 0.925x (not currently active)
+The 0.925x scaling was validated as obstacle-safe but didn't fix the turn issue.
 
-*Both algorithms use similar resources (~60% CPU, ~2.3GB RAM)*
-*slam_toolbox delivers 61× better accuracy with nearly identical resource usage*
+### Previous Session: RTF Changed to 1.0
+Files modified (already rebuilt):
+- `rover_sim/worlds/simple.sdf`: `real_time_factor` 10.0 → 1.0
+- `rover_sim/worlds/empty_room.sdf`: `real_time_factor` 10.0 → 1.0
+
+This means experiments now run at real-time (not 10x). A 37m trajectory at 0.3 m/s takes ~123s real time.
 
 ---
 
-## OUTPUT FILES
+## TUNING RESULTS (STILL VALID)
 
-### Results Location
-```
-~/thesis/ros2_ws/results/slam_experiments/
-├── batch_summary.json              # Batch run metadata
-├── cartographer_traj_01_easy_slam/
-├── cartographer_traj_02_loop_slam/
-├── cartographer_traj_03_complex_slam/
-├── slam_toolbox_traj_01_easy_slam/
-├── slam_toolbox_traj_02_loop_slam/
-└── slam_toolbox_traj_03_complex_slam/
+Tuning was done on traj_01_easy (16m) which works fine:
 
-~/thesis/ros2_ws/thesis_results.csv  # Aggregated results CSV
-```
+| Algorithm | Validated ATE | Std Dev |
+|-----------|---------------|---------|
+| **Cartographer** | **0.54 cm** | ± 0.17 cm |
+| SLAM Toolbox | 1.77 cm | ± 0.24 cm |
 
-### Per-Experiment Files
+Best configs are saved and symlinked:
 ```
-{algo}_{traj}_slam/
-├── gt.tum                    # Ground truth trajectory (TUM format)
-├── est.tum                   # SLAM estimate trajectory (TUM format)
-├── metrics.json              # ATE, RPE, completion metrics
-├── run_info.json             # Metadata + timing
-└── odom_slam_delta.csv       # Odometry vs SLAM correction data
+~/thesis/ros2_ws/results/tuning/slam_toolbox_tuning_20260125_210455/best_slam_toolbox_config.yaml
+~/thesis/ros2_ws/results/tuning/cartographer_tuning_20260125_213727/best_cartographer_config.lua
 ```
 
 ---
 
-## SLAM TUNING (Applied This Session)
+## KEY FILES
 
-### slam_toolbox.yaml
-```yaml
-distance_variance_penalty: 1.5      # Was 0.5
-angle_variance_penalty: 1.5         # Was 1.0
-correlation_search_space_dimension: 1.0  # Was 0.5
-minimum_travel_distance: 0.15       # Was 0.3
-minimum_travel_heading: 0.15        # Was 0.3
-loop_match_maximum_variance_coarse: 1.5  # Was 3.0
-link_match_minimum_response_fine: 0.25   # Was 0.1
+### Trajectory Files (debugging state)
+```
+~/thesis/trajectories/
+├── traj_micro_tune.csv       # ~5m - OK (small, for tuning)
+├── traj_01_easy.csv          # 16m - OK (left side only)
+├── traj_01_mirror.csv        # 16m - OK (right side, short segment) ← NEW, WORKS
+├── traj_02_loop.csv          # 40m - FAILING at (4,-4) corner (currently ±4m scale)
+├── traj_02_loop_original.csv # 40m - backup of original
+└── traj_03_complex.csv       # 56m - not tested yet (still at ±3.7m scale)
 ```
 
-### cartographer_2d.lua
-```lua
-loop_closure_translation_weight = 5e4   # Was 1.1e4
-loop_closure_rotation_weight = 5e5      # Was 1e5
+### World Files (walls at ±5m)
+```
+~/thesis/ros2_ws/src/slam_thesis/rover_sim/worlds/simple.sdf
+~/thesis/ros2_ws/src/slam_thesis/rover_sim/worlds/empty_room.sdf
+```
+
+### Experiment Scripts
+```
+~/thesis/ros2_ws/src/slam_thesis/experiment_runner/scripts/
+├── run_one.py              # Single experiment
+├── run_all.py              # Batch runner
+├── evaluate_run.py         # ATE/RPE calculation
+└── aggregate_results.py    # Generates summary.csv
 ```
 
 ---
 
-## TRAJECTORY DESIGN
+## CRITICAL KNOWLEDGE
 
-All trajectories use outer edges (±4 coordinates) for 1m+ obstacle clearance:
+### Trajectory Format
+```csv
+x,y,yaw,speed
+0.0,0.0,1.5708,0.3
+0.0,2.0,1.5708,0.3
+...
+```
+- Coordinates in meters
+- Yaw in radians
+- Speed in m/s
 
-| Trajectory | Distance | Path Description |
-|------------|----------|------------------|
-| traj_01_easy | 16m | Rectangle in upper-left quadrant |
-| traj_02_loop | 40m | Full perimeter at ±4 coordinates |
-| traj_03_complex | 56m | Figure-8 using outer edges |
+### Room Dimensions
+- Walls at x = ±5m, y = ±5m
+- Safe trajectory zone: ±3m to ±3.5m (leave 1.5-2m margin)
+
+### pose_mode parameter
+- `--pose_modes slam` → Uses SLAM-corrected poses (has some drift)
+- `--pose_modes ground_truth` → Uses perfect poses (no drift, for debugging)
+- `--pose_modes odometry` → Uses raw wheel odometry (lots of drift)
 
 ---
 
@@ -168,33 +165,23 @@ All trajectories use outer edges (±4 coordinates) for 1m+ obstacle clearance:
 - **Ubuntu**: 24.04
 - **ROS2**: Jazzy
 - **Gazebo**: Harmonic (gz-sim)
-- **WSL2 display**: `export DISPLAY=:0 && export WAYLAND_DISPLAY=wayland-0`
-- **Python tools**: evo 1.34.2
+- **Python**: 3.12
+- **Simulation speed**: 1.0x real-time (changed from 10x)
 
 ---
 
-## KEY FILE LOCATIONS
+## WHAT NEXT SESSION SHOULD DO
 
-### Experiment Scripts
-```
-~/thesis/ros2_ws/src/slam_thesis/experiment_runner/scripts/
-├── run_one.py              # Single experiment (timeout=300s)
-├── run_all.py              # Batch runner (timeout=300s)
-├── aggregate_results.py    # Results aggregation
-└── evaluate_run.py         # ATE/RPE calculation
-```
+1. **Debug why robot doesn't turn at (4,-4)**:
+   - Add debug logging to trajectory_follower.py to see:
+     - Current waypoint index when approaching corner
+     - Distance to next waypoint
+     - Calculated angle to target
+     - Whether it enters rotate-in-place mode (Zone 1)
 
-### SLAM Configs
-```
-~/thesis/ros2_ws/src/slam_thesis/slam_launch/config/
-├── slam_toolbox.yaml       # TUNED
-└── cartographer_2d.lua     # TUNED
-```
+2. **Potential fixes to try**:
+   - Increase lookahead_distance from 0.5m to 1.0m
+   - Add explicit corner handling in the controller
+   - Use a different waypoint advancement strategy (look-ahead based vs distance based)
 
-### Trajectories
-```
-~/thesis/trajectories/
-├── traj_01_easy.csv        # 16m
-├── traj_02_loop.csv        # 40m
-└── traj_03_complex.csv     # 56m
-```
+3. **Once turn issue is fixed**: Run final comparison experiments

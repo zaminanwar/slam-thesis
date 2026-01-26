@@ -332,7 +332,8 @@ def run_experiment(
     timeout: float,
     speed_scale: float,
     pose_mode: str,
-    verbose: bool
+    verbose: bool,
+    world: str = 'simple.sdf'
 ) -> dict:
     """
     Run a single SLAM evaluation experiment.
@@ -344,6 +345,7 @@ def run_experiment(
         'algorithm': algo,
         'trajectory': trajectory,
         'pose_mode': pose_mode,
+        'world': world,
         'output_dir': str(output_dir),
         'start_time': datetime.now().isoformat(),
         'status': 'unknown',
@@ -363,9 +365,9 @@ def run_experiment(
         resource_monitor.start()
 
         # === Stage 1: Start Gazebo simulation ===
-        print(f"\n[run_one] === Stage 1: Starting Gazebo simulation ===")
+        print(f"\n[run_one] === Stage 1: Starting Gazebo simulation (world: {world}) ===")
         sim_proc = pm.start(
-            ['ros2', 'launch', 'rover_sim', 'sim.launch.py'],
+            ['ros2', 'launch', 'rover_sim', 'sim.launch.py', f'world:={world}'],
             'Gazebo simulation',
             env
         )
@@ -654,6 +656,12 @@ Output structure:
         help='Print detailed output'
     )
 
+    parser.add_argument(
+        '--world', '-w',
+        default='simple.sdf',
+        help='World file name (default: simple.sdf)'
+    )
+
     args = parser.parse_args()
 
     # Determine output directory
@@ -669,6 +677,7 @@ Output structure:
     print(f"[run_one] Algorithm: {args.algo}")
     print(f"[run_one] Trajectory: {args.trajectory}")
     print(f"[run_one] Pose mode: {args.pose_mode}")
+    print(f"[run_one] World: {args.world}")
     print(f"[run_one] Output: {output_dir}")
     print(f"[run_one] Timeout: {args.timeout}s")
 
@@ -680,7 +689,8 @@ Output structure:
         timeout=args.timeout,
         speed_scale=args.speed_scale,
         pose_mode=args.pose_mode,
-        verbose=args.verbose
+        verbose=args.verbose,
+        world=args.world
     )
 
     # Save run metadata
