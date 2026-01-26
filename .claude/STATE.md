@@ -1,17 +1,17 @@
 # Project State
 
-**Last Updated**: 2026-01-26T23:00:00
-**Last Claude Instance**: M6 Implementation (Opus 4.5)
-**Current Milestone**: M7 (Evaluation)
-**Current Task**: T7.1 - Per-run evaluation script
+**Last Updated**: 2026-01-26T14:55:00
+**Last Claude Instance**: M7 Implementation (Opus 4.5)
+**Current Milestone**: M8 (Experiment Runner)
+**Current Task**: T8.1 - run_one.py
 
 ## Status Summary
 
 | Status | Count |
 |--------|-------|
-| Completed | 18 |
+| Completed | 20 |
 | In Progress | 0 |
-| Pending | 11 |
+| Pending | 9 |
 | Blocked | 0 |
 
 ## Progress
@@ -48,11 +48,11 @@
 - [x] T6.1 - TF-based trajectory exporter
 - [x] T6.2 - Export integration
 
-### EPIC 7 - Evaluation ← CURRENT
-- [ ] T7.1 - Per-run evaluation script
-- [ ] T7.2 - Failure handling
+### EPIC 7 - Evaluation ✓
+- [x] T7.1 - Per-run evaluation script
+- [x] T7.2 - Failure handling
 
-### EPIC 8 - Experiment Runner
+### EPIC 8 - Experiment Runner ← CURRENT
 - [ ] T8.1 - run_one.py
 - [ ] T8.2 - run_all.py
 - [ ] T8.3 - aggregate_results.py
@@ -72,21 +72,24 @@
 | M4 | - | 2026-01-26 | **PASSED** (build + launch args verified) |
 | M5 | - | 2026-01-26 | **PASSED** (build + launch args verified) |
 | M6 | - | 2026-01-26 | **PASSED** (build + launch args verified) |
-| M7 | validate_m7.sh | - | Not created yet |
+| M7 | validate_m7.sh | 2026-01-26 | **PASSED** |
 | M8 | validate_m8.sh | - | Not created yet |
 | M9 | validate_m9.sh | - | Not created yet |
 
 ## Next Action
 
 **For new Claude instance:**
-Implement M7 (Evaluation):
-- T7.1: Per-run evaluation script (using evo library)
-- T7.2: Failure handling
+Implement M8 (Experiment Runner):
+- T8.1: run_one.py - Single experiment orchestrator
+- T8.2: run_all.py - Batch experiment runner
+- T8.3: aggregate_results.py - Results aggregation
 
-The evaluation script should:
-- Compare estimated trajectory against ground truth
-- Compute ATE/RPE metrics using evo library
-- Output JSON results for aggregation
+run_one.py should:
+- Take bag_path and algorithm as input
+- Launch SLAM (slam_toolbox or cartographer) with bag replay
+- Launch traj_exporter to export gt.tum and est.tum
+- Call evaluate_run.py to compute metrics
+- Handle timeouts and failures gracefully
 
 ## Environment
 
@@ -169,6 +172,47 @@ ros2 run traj_exporter traj_exporter --ros-args \
 ```
 # timestamp tx ty tz qx qy qz qw
 1234567890.123456789 1.234 2.345 0.000 0.000 0.000 0.707 0.707
+```
+
+## Key Files Created in M7
+
+```
+experiment_runner/
+└── scripts/
+    └── evaluate_run.py  # Per-run evaluation using evo library
+```
+
+**M7 Usage:**
+```bash
+# Evaluate trajectory comparison
+python3 ~/thesis/ros2_ws/src/slam_thesis/experiment_runner/scripts/evaluate_run.py \
+  --gt_file /path/to/gt.tum \
+  --est_file /path/to/est.tum \
+  --output_dir /path/to/output \
+  --dataset traj_01_easy__baseline \
+  --algorithm slam_toolbox \
+  --save_plots --verbose
+```
+
+**Output Files:**
+- `metrics.json`: ATE/RPE statistics (rmse, mean, median, std, min, max)
+- `ate_plot.png`: Trajectory comparison plot (optional)
+- `rpe_plot.png`: RPE distribution histogram (optional)
+
+**metrics.json Format:**
+```json
+{
+  "success": true,
+  "dataset": "traj_01_easy__baseline",
+  "algorithm": "slam_toolbox",
+  "timestamp": "2026-01-26T15:00:00",
+  "ate": {"rmse": 0.0523, "mean": 0.0412, ...},
+  "rpe": {"rmse": 0.0234, "mean": 0.0198, ...},
+  "trajectory_length_m": 45.67,
+  "duration_s": 91.34,
+  "num_poses": 1827,
+  "error": null
+}
 ```
 
 ## Git Branch Info
