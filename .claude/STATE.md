@@ -1,9 +1,9 @@
 # Project State - SLAM Thesis Implementation
 
-**Last Updated**: 2026-01-25T17:40:00
+**Last Updated**: 2026-01-25T17:50:00
 **Last Claude Instance**: Implementation (Opus 4.5)
-**Current Phase**: Phase 4 - COMPLETE
-**Next Action**: Analyze results, create visualizations, write thesis
+**Current Phase**: Phase 4 - COMPLETE (pushed to GitHub)
+**Next Action**: Phase 5 - Generate visualizations & analyze for thesis
 
 ---
 
@@ -90,6 +90,15 @@ done
 | traj_01_easy | 0.0233m | 0.0888m | 0.0281m | 115s | 100.5% |
 | traj_02_loop | 2.7852m | 4.7036m | 0.5016m | 201s | 107.1% |
 | traj_03_complex | 2.3100m | 3.7219m | 0.6119m | 301s | 78.1% |
+
+### Resource Usage (CPU & Memory)
+| Algorithm | Avg CPU | Peak CPU | Avg Memory | Peak Memory |
+|-----------|---------|----------|------------|-------------|
+| slam_toolbox | 60.5% | 69.4% | 2,347 MB | 2,416 MB |
+| cartographer | 59.6% | 65.6% | 2,349 MB | 2,479 MB |
+
+*Both algorithms use similar resources (~60% CPU, ~2.3GB RAM)*
+*slam_toolbox delivers 61× better accuracy with nearly identical resource usage*
 
 ---
 
