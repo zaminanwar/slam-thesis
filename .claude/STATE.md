@@ -1,17 +1,17 @@
 # Project State
 
-**Last Updated**: 2026-01-26T14:55:00
-**Last Claude Instance**: M7 Implementation (Opus 4.5)
-**Current Milestone**: M8 (Experiment Runner)
-**Current Task**: T8.1 - run_one.py
+**Last Updated**: 2026-01-26T23:30:00
+**Last Claude Instance**: M8 Implementation (Opus 4.5)
+**Current Milestone**: M9 (Documentation)
+**Current Task**: T9.1 - Top-level README
 
 ## Status Summary
 
 | Status | Count |
 |--------|-------|
-| Completed | 20 |
+| Completed | 23 |
 | In Progress | 0 |
-| Pending | 9 |
+| Pending | 6 |
 | Blocked | 0 |
 
 ## Progress
@@ -52,12 +52,12 @@
 - [x] T7.1 - Per-run evaluation script
 - [x] T7.2 - Failure handling
 
-### EPIC 8 - Experiment Runner ← CURRENT
-- [ ] T8.1 - run_one.py
-- [ ] T8.2 - run_all.py
-- [ ] T8.3 - aggregate_results.py
+### EPIC 8 - Experiment Runner ✓
+- [x] T8.1 - run_one.py
+- [x] T8.2 - run_all.py
+- [x] T8.3 - aggregate_results.py
 
-### EPIC 9 - Documentation
+### EPIC 9 - Documentation ← CURRENT
 - [ ] T9.1 - Top-level README
 - [ ] T9.2 - Validation checklist
 
@@ -73,23 +73,17 @@
 | M5 | - | 2026-01-26 | **PASSED** (build + launch args verified) |
 | M6 | - | 2026-01-26 | **PASSED** (build + launch args verified) |
 | M7 | validate_m7.sh | 2026-01-26 | **PASSED** |
-| M8 | validate_m8.sh | - | Not created yet |
+| M8 | validate_m8.sh | 2026-01-26 | **PASSED** |
 | M9 | validate_m9.sh | - | Not created yet |
 
 ## Next Action
 
 **For new Claude instance:**
-Implement M8 (Experiment Runner):
-- T8.1: run_one.py - Single experiment orchestrator
-- T8.2: run_all.py - Batch experiment runner
-- T8.3: aggregate_results.py - Results aggregation
+Implement M9 (Documentation):
+- T9.1: Top-level README.md with project overview, quick start, and usage examples
+- T9.2: Validation checklist documenting all milestones
 
-run_one.py should:
-- Take bag_path and algorithm as input
-- Launch SLAM (slam_toolbox or cartographer) with bag replay
-- Launch traj_exporter to export gt.tum and est.tum
-- Call evaluate_run.py to compute metrics
-- Handle timeouts and failures gracefully
+Alternatively, run validate_m8.sh to verify the experiment runner implementation.
 
 ## Environment
 
@@ -214,6 +208,52 @@ python3 ~/thesis/ros2_ws/src/slam_thesis/experiment_runner/scripts/evaluate_run.
   "error": null
 }
 ```
+
+## Key Files Created in M8
+
+```
+experiment_runner/
+└── scripts/
+    ├── run_one.py          # Single experiment orchestrator
+    ├── run_all.py          # Batch experiment runner
+    └── aggregate_results.py # Results aggregation
+```
+
+**M8 Usage:**
+```bash
+# Run single experiment
+python3 ~/thesis/ros2_ws/src/slam_thesis/experiment_runner/scripts/run_one.py \
+  --bag_path /path/to/bag \
+  --algorithm slam_toolbox \
+  --verbose
+
+# Run batch experiments
+python3 ~/thesis/ros2_ws/src/slam_thesis/experiment_runner/scripts/run_all.py \
+  --bags_dir ~/thesis/ros2_ws/bags \
+  --algorithms slam_toolbox cartographer \
+  --parallel 2
+
+# Aggregate results
+python3 ~/thesis/ros2_ws/src/slam_thesis/experiment_runner/scripts/aggregate_results.py \
+  --bags_dir ~/thesis/ros2_ws/bags \
+  --output results_summary
+```
+
+**run_one.py Output Structure:**
+```
+bag_path/
+├── gt_trajectory.tum              # Ground truth (odom -> base_footprint)
+├── slam_toolbox_trajectory.tum    # SLAM estimate (map -> base_footprint)
+└── results/
+    └── slam_toolbox/
+        ├── metrics.json           # ATE/RPE statistics
+        ├── ate_plot.png           # Trajectory comparison plot
+        └── rpe_plot.png           # RPE distribution plot
+```
+
+**aggregate_results.py Output:**
+- `results_summary.csv`: Flat table of all results
+- `results_summary.json`: Detailed JSON with aggregated statistics by algorithm, trajectory, and condition
 
 ## Git Branch Info
 
