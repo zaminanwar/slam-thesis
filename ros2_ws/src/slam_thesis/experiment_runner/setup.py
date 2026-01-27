@@ -26,6 +26,7 @@ setup(
     entry_points={
         'console_scripts': [
             'odom_noise_node = experiment_runner.odom_noise_node:main',
+            'trajectory_done_monitor = experiment_runner.trajectory_done_monitor:main',
         ],
     },
 )

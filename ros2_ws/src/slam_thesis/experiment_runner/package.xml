@@ -19,8 +19,9 @@
   <exec_depend>rover_sim</exec_depend>
   <exec_depend>rover_control</exec_depend>
   <exec_depend>gt_publisher</exec_depend>
-  <exec_depend>slam_launch</exec_depend>
   <exec_depend>traj_exporter</exec_depend>
+  <!-- Note: slam_launch is used at runtime by run_one.py and run_live.py
+       but we don't declare it here to avoid circular dependency -->
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
