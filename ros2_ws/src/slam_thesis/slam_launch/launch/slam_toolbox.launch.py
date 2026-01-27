@@ -18,8 +18,13 @@ from launch.actions import (
     ExecuteProcess,
     TimerAction,
     LogInfo,
+    EmitEvent,
+    RegisterEventHandler,
+    Shutdown,
 )
 from launch.conditions import IfCondition
+from launch.event_handlers import OnProcessExit
+from launch.events import Shutdown as ShutdownEvent
 from launch.substitutions import (
     LaunchConfiguration,
     PathJoinSubstitution,
@@ -65,6 +70,12 @@ def generate_launch_description():
         description='Path to slam_toolbox configuration file'
     )
 
+    traj_output_arg = DeclareLaunchArgument(
+        'traj_output',
+        default_value='',
+        description='Output file for SLAM trajectory (empty = no export)'
+    )
+
     # ========================
     # slam_toolbox Node
     # ========================
@@ -93,15 +104,28 @@ def generate_launch_description():
         '--clock',  # Publish /clock from bag timestamps
     ]
 
+    # Create bag playback process for non-loop mode
+    rosbag_play_process = ExecuteProcess(
+        cmd=rosbag_play_cmd,
+        output='screen',
+        name='rosbag_play',
+    )
+
+    # Event handler to shutdown launch when bag playback finishes
+    shutdown_on_bag_exit = RegisterEventHandler(
+        OnProcessExit(
+            target_action=rosbag_play_process,
+            on_exit=[
+                LogInfo(msg='Bag playback finished, shutting down...'),
+                EmitEvent(event=ShutdownEvent(reason='Bag playback completed')),
+            ],
+        )
+    )
+
     # Delayed bag playback to let SLAM node initialize
     rosbag_play_once = TimerAction(
         period=2.0,  # Wait for slam_toolbox to initialize
-        actions=[
-            ExecuteProcess(
-                cmd=rosbag_play_cmd,
-                output='screen',
-            )
-        ],
+        actions=[rosbag_play_process],
         condition=IfCondition(
             PythonExpression(["'", LaunchConfiguration('loop'), "' == 'false'"])
         )
@@ -116,6 +140,32 @@ def generate_launch_description():
             )
         ],
         condition=IfCondition(LaunchConfiguration('loop'))
+    )
+
+    # ========================
+    # TF Recording (for offline trajectory extraction)
+    # ========================
+
+    # Record /tf during SLAM for later trajectory extraction
+    tf_record_cmd = [
+        'ros2', 'bag', 'record',
+        '-o', LaunchConfiguration('traj_output'),
+        '/tf', '/tf_static', '/clock',
+        '--use-sim-time',
+    ]
+
+    tf_recorder = TimerAction(
+        period=2.5,  # Start just before bag playback
+        actions=[
+            ExecuteProcess(
+                cmd=tf_record_cmd,
+                output='screen',
+                name='tf_recorder',
+            )
+        ],
+        condition=IfCondition(
+            PythonExpression(["len('", LaunchConfiguration('traj_output'), "') > 0"])
+        ),
     )
 
     # ========================
@@ -138,12 +188,19 @@ def generate_launch_description():
         use_sim_time_arg,
         loop_arg,
         slam_config_arg,
+        traj_output_arg,
 
         # Info
         log_info,
 
         # SLAM node (starts first)
         slam_toolbox_node,
+
+        # TF recorder (optional, for trajectory extraction)
+        tf_recorder,
+
+        # Event handler for shutdown on bag completion
+        shutdown_on_bag_exit,
 
         # Bag playback (delayed)
         rosbag_play_once,

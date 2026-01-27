@@ -18,8 +18,12 @@ from launch.actions import (
     ExecuteProcess,
     TimerAction,
     LogInfo,
+    EmitEvent,
+    RegisterEventHandler,
 )
 from launch.conditions import IfCondition
+from launch.event_handlers import OnProcessExit
+from launch.events import Shutdown as ShutdownEvent
 from launch.substitutions import (
     LaunchConfiguration,
     PythonExpression,
@@ -129,15 +133,28 @@ def generate_launch_description():
         '--clock',  # Publish /clock from bag timestamps
     ]
 
+    # Create bag playback process for non-loop mode
+    rosbag_play_process = ExecuteProcess(
+        cmd=rosbag_play_cmd,
+        output='screen',
+        name='rosbag_play',
+    )
+
+    # Event handler to shutdown launch when bag playback finishes
+    shutdown_on_bag_exit = RegisterEventHandler(
+        OnProcessExit(
+            target_action=rosbag_play_process,
+            on_exit=[
+                LogInfo(msg='Bag playback finished, shutting down...'),
+                EmitEvent(event=ShutdownEvent(reason='Bag playback completed')),
+            ],
+        )
+    )
+
     # Delayed bag playback to let Cartographer initialize
     rosbag_play_once = TimerAction(
         period=3.0,  # Wait for Cartographer to initialize
-        actions=[
-            ExecuteProcess(
-                cmd=rosbag_play_cmd,
-                output='screen',
-            )
-        ],
+        actions=[rosbag_play_process],
         condition=IfCondition(
             PythonExpression(["'", LaunchConfiguration('loop'), "' == 'false'"])
         )
@@ -183,6 +200,9 @@ def generate_launch_description():
         # Cartographer nodes (start first)
         cartographer_node,
         occupancy_grid_node,
+
+        # Event handler for shutdown on bag completion
+        shutdown_on_bag_exit,
 
         # Bag playback (delayed)
         rosbag_play_once,

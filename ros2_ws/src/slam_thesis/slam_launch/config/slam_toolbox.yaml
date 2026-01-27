@@ -66,6 +66,10 @@ slam_toolbox:
     transform_timeout: 0.2
     tf_buffer_duration: 30.0
 
+    # Transform publishing - CRITICAL for trajectory extraction
+    transform_publish_period: 0.02  # Publish map->odom at 50Hz
+    map_update_interval: 5.0  # Update occupancy grid every 5s
+
     # Stamped pose (for debugging/initialization)
     use_response_expansion: true
     debug_logging: false
