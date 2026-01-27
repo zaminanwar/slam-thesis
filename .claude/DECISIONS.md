@@ -312,6 +312,83 @@ robot_description = ParameterValue(Command(['xacro ', urdf_path]), value_type=st
 
 ---
 
+## AD-011: No AMCL for Nav2 Localization
+
+**Date**: 2026-01-26
+**Status**: ACCEPTED
+
+### Context
+Nav2 typically uses AMCL (Adaptive Monte Carlo Localization) for pose estimation
+when navigating on a pre-built map. However, in our SLAM-in-the-loop setup,
+the SLAM algorithm is running continuously and already provides localization.
+
+### Decision
+**Do not use AMCL**. Nav2 will use the `map → odom` transform published directly
+by the SLAM algorithm (slam_toolbox or Cartographer).
+
+### Rationale
+1. SLAM already provides continuous localization via `map → odom` transform
+2. Running AMCL alongside SLAM would create conflicting `map → odom` transforms
+3. Simpler system with fewer components
+4. Direct evaluation of SLAM's localization quality through navigation performance
+5. AMCL is designed for static maps, not dynamic SLAM
+
+### Consequences
+- Nav2 config must NOT include AMCL node
+- SLAM must be running before Nav2 starts (5s delay in launch)
+- Navigation success directly reflects SLAM localization quality
+- No particle filter visualization (use SLAM's pose estimate instead)
+
+### Configuration
+```yaml
+# nav2_slam_params.yaml - NO amcl_config section
+# The transform map → odom comes from SLAM, not AMCL
+```
+
+---
+
+## AD-012: DWB Local Planner for Differential Drive
+
+**Date**: 2026-01-26
+**Status**: ACCEPTED
+
+### Context
+Nav2 offers multiple local planners: DWB (Dynamic Window Approach), TEB,
+Regulated Pure Pursuit, and others. Need to select appropriate planner
+for our differential drive rover.
+
+### Decision
+Use **DWB (Dynamic Window Based) Local Planner** with appropriate cost functions.
+
+### Rationale
+1. DWB is optimized for differential drive robots
+2. Well-tested and mature in Nav2 ecosystem
+3. Provides smooth velocity profiles
+4. Good obstacle avoidance with configurable cost functions
+5. Lower computational overhead than TEB for simple environments
+
+### Consequences
+- Must tune DWB-specific parameters (vx_samples, vtheta_samples, etc.)
+- Uses standard critic plugins for path following and obstacle avoidance
+- May need velocity limits tuned for WSL2 simulation performance
+
+### Key Parameters
+| Parameter | Value | Rationale |
+|-----------|-------|-----------|
+| max_vel_x | 0.5 m/s | Match trajectory follower speed |
+| max_vel_theta | 1.0 rad/s | Smooth turns |
+| min_vel_x | 0.0 m/s | Allow in-place rotation |
+| acc_lim_x | 2.5 m/s² | Smooth acceleration |
+| acc_lim_theta | 3.2 rad/s² | Smooth rotation |
+| vx_samples | 20 | Velocity sampling resolution |
+| vtheta_samples | 20 | Angular velocity samples |
+
+### Alternative Considered
+- **TEB**: More sophisticated but higher CPU usage, overkill for our simple worlds
+- **Regulated Pure Pursuit**: Simpler but less obstacle avoidance capability
+
+---
+
 ## Template for New Decisions
 
 ```markdown

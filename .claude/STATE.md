@@ -286,3 +286,72 @@ done
 - **Current branch**: fresh-start (at M0-M3, working on M4+)
 - **master**: synced with origin/master (has M4-M9 from previous work)
 - **backup-m8**: previous M4-M8 implementation (reference)
+
+---
+
+## Nav2 Autonomous Navigation Extension
+
+### EPIC 10 - Nav2 Launch Package (M10) ✓ COMPLETE
+
+Nav2 integration for autonomous navigation experiments using SLAM-in-the-loop.
+
+- [x] T10.1 - Create nav_launch package structure (package.xml, CMakeLists.txt)
+- [x] T10.2 - Create nav2_slam_params.yaml (Nav2 config for SLAM-based localization)
+- [x] T10.3 - Implement nav2_slam.launch.py (Sim + SLAM + Nav2 launcher)
+- [x] T10.4 - Implement send_goal.launch.py (Single goal utility)
+- [x] T10.5 - Test Nav2 with both SLAM algorithms
+
+### EPIC 11 - Navigation Experiments (M11) ✓ COMPLETE
+
+Scripts and configuration for automated navigation experiments.
+
+- [x] T11.1 - Create run_nav_experiment.py (Navigation experiment orchestrator)
+- [x] T11.2 - Create nav_goals_01.yaml (Simple square path, 4 goals)
+- [x] T11.3 - Create nav_goals_02.yaml (Complex exploration, 7 goals)
+- [x] T11.4 - Update .claude/ documentation (Phase 4)
+- [x] T11.5 - Create validate_m10.sh and validate_m11.sh
+
+### Nav2 Milestone Validation Status
+
+| Milestone | Script | Last Run | Status |
+|-----------|--------|----------|--------|
+| M10 | validate_m10.sh | 2026-01-26 | **PASSED** |
+| M11 | validate_m11.sh | 2026-01-26 | **PASSED** |
+
+### Nav2 Key Files
+
+```
+nav_launch/
+├── package.xml
+├── CMakeLists.txt
+├── config/
+│   └── nav2_slam_params.yaml     # Nav2 for SLAM-in-the-loop (no AMCL)
+├── launch/
+│   ├── nav2_slam.launch.py       # Main: Sim + SLAM + Nav2
+│   └── send_goal.launch.py       # Utility: Send single goal
+└── resource/
+    └── nav_launch
+
+experiment_runner/
+├── scripts/
+│   └── run_nav_experiment.py     # Navigation experiment runner
+└── config/
+    ├── nav_goals_01.yaml         # Simple square path
+    └── nav_goals_02.yaml         # Complex exploration
+```
+
+### Nav2 Usage
+
+```bash
+# Launch Nav2 with SLAM (requires nav_launch package)
+ros2 launch nav_launch nav2_slam.launch.py algorithm:=slam_toolbox
+
+# Send test goal
+ros2 launch nav_launch send_goal.launch.py x:=2.0 y:=1.0 yaw:=0.0
+
+# Run navigation experiment
+python3 ~/thesis/ros2_ws/src/slam_thesis/experiment_runner/scripts/run_nav_experiment.py \
+  --algorithm slam_toolbox \
+  --goals nav_goals_01.yaml \
+  --verbose
+```

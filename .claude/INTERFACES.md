@@ -327,3 +327,148 @@ ODOM_FRAME = "odom"
 PROVIDE_ODOM_FRAME = false  -- Use existing odom
 USE_ODOMETRY = true
 ```
+
+---
+
+## Nav2 Autonomous Navigation
+
+### Nav2 Action Servers
+
+| Action | Type | Purpose |
+|--------|------|---------|
+| `/navigate_to_pose` | `nav2_msgs/action/NavigateToPose` | Send robot to a goal pose |
+| `/navigate_through_poses` | `nav2_msgs/action/NavigateThroughPoses` | Navigate through waypoint sequence |
+| `/follow_waypoints` | `nav2_msgs/action/FollowWaypoints` | Follow predefined waypoints |
+
+### Nav2 Topics (Input)
+
+| Topic | Message Type | Publisher | Purpose |
+|-------|--------------|-----------|---------|
+| `/scan` | `sensor_msgs/msg/LaserScan` | Gazebo | LiDAR data for costmaps |
+| `/odom` | `nav_msgs/msg/Odometry` | Gazebo | Robot odometry |
+| `/tf` | `tf2_msgs/msg/TFMessage` | Multiple | Transform tree |
+| `/map` | `nav_msgs/msg/OccupancyGrid` | SLAM | Map for global planning |
+
+### Nav2 Topics (Output)
+
+| Topic | Message Type | Publisher | Purpose |
+|-------|--------------|-----------|---------|
+| `/cmd_vel` | `geometry_msgs/msg/Twist` | Nav2 Controller | Velocity commands |
+| `/local_plan` | `nav_msgs/msg/Path` | Local Planner | Local trajectory |
+| `/global_plan` | `nav_msgs/msg/Path` | Global Planner | Global path |
+| `/local_costmap/costmap` | `nav_msgs/msg/OccupancyGrid` | Costmap2D | Local obstacle map |
+| `/global_costmap/costmap` | `nav_msgs/msg/OccupancyGrid` | Costmap2D | Global planning map |
+
+### Nav2 TF Requirements
+
+Nav2 requires these TF transforms to function:
+
+```
+map → odom        # Published by SLAM (not AMCL - see AD-011)
+odom → base_link  # Published by Gazebo diff_drive
+base_link → laser_frame  # Published by robot_state_publisher (static)
+```
+
+**Important**: No AMCL is used. SLAM provides the `map → odom` transform directly.
+
+### Navigation Goals Format (YAML)
+
+Location: `~/thesis/ros2_ws/src/slam_thesis/experiment_runner/config/nav_goals_*.yaml`
+
+```yaml
+# Navigation goal waypoints
+goals:
+  - x: 3.0
+    y: 0.0
+    yaw: 0.0
+    name: "point_1"
+  - x: 3.0
+    y: 3.0
+    yaw: 1.5708
+    name: "point_2"
+  - x: 0.0
+    y: 3.0
+    yaw: 3.1416
+    name: "point_3"
+  - x: 0.0
+    y: 0.0
+    yaw: -1.5708
+    name: "point_4"
+```
+
+| Field | Type | Unit | Description |
+|-------|------|------|-------------|
+| x | float | meters | Goal X coordinate in map frame |
+| y | float | meters | Goal Y coordinate in map frame |
+| yaw | float | radians | Goal heading (-π to π) |
+| name | string | - | Human-readable goal identifier |
+
+### nav_results.json (Navigation Output)
+
+Location: `~/thesis/ros2_ws/results/nav_<algorithm>_<goals>_<timestamp>/nav_results.json`
+
+```json
+{
+  "algorithm": "slam_toolbox",
+  "goals_file": "nav_goals_01.yaml",
+  "world": "simple.sdf",
+  "timestamp": "2026-01-26T20:30:00",
+  "goals_succeeded": 4,
+  "goals_attempted": 4,
+  "success_rate": 1.0,
+  "total_time_s": 120.5,
+  "timeout_per_goal_s": 120.0,
+  "per_goal_results": [
+    {
+      "name": "point_1",
+      "x": 3.0,
+      "y": 0.0,
+      "yaw": 0.0,
+      "success": true,
+      "time_s": 25.3,
+      "error": ""
+    },
+    {
+      "name": "point_2",
+      "x": 3.0,
+      "y": 3.0,
+      "yaw": 1.5708,
+      "success": true,
+      "time_s": 32.1,
+      "error": ""
+    }
+  ]
+}
+```
+
+On failure:
+```json
+{
+  "algorithm": "cartographer",
+  "goals_succeeded": 2,
+  "goals_attempted": 4,
+  "success_rate": 0.5,
+  "per_goal_results": [
+    {
+      "name": "point_3",
+      "success": false,
+      "time_s": 120.0,
+      "error": "Timeout"
+    }
+  ]
+}
+```
+
+### Nav2 Parameter Configuration
+
+Key parameters in `nav2_slam_params.yaml`:
+
+| Component | Parameter | Value | Rationale |
+|-----------|-----------|-------|-----------|
+| Local Planner | controller_plugin | dwb_core::DWBLocalPlanner | Best for differential drive |
+| Global Planner | planner_plugin | nav2_navfn_planner/NavfnPlanner | Simple, reliable for 2D |
+| Robot Footprint | robot_radius | 0.25m | Based on 0.4x0.3m chassis + safety |
+| Costmap | resolution | 0.05m | Matches SLAM grid resolution |
+| Controller | controller_frequency | 20.0 Hz | Matches /cmd_vel rate |
+| Costmap | inflation_radius | 0.55m | Robot radius + safety margin |
+| Transform | transform_tolerance | 1.0s | WSL2 timing tolerance |

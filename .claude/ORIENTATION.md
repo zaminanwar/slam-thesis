@@ -4,21 +4,25 @@
 
 ## What This Project Is
 
-A ROS2 Humble simulation platform comparing two 2D LiDAR SLAM algorithms:
+A ROS2 Jazzy simulation platform comparing two 2D LiDAR SLAM algorithms:
 - **slam_toolbox** vs **Cartographer 2D**
 
-The platform uses a simulated rover in Gazebo Classic with predefined trajectories.
+The platform uses a simulated rover in Gazebo Harmonic with predefined trajectories.
 Evaluation uses rosbag replay for fair A/B comparison, producing ATE/RPE metrics via evo.
+
+**Extended Goal**: Nav2 autonomous navigation integration to evaluate how SLAM quality
+affects autonomous navigation (success rate, navigation time, path efficiency).
 
 ## Environment
 
 | Component | Value |
 |-----------|-------|
-| OS | Ubuntu 22.04 on WSL2 (Windows 11) |
-| ROS | ROS 2 Humble |
-| Simulator | Gazebo Classic (gazebo11) |
+| OS | Ubuntu 24.04 on WSL2 (Windows 11) |
+| ROS | ROS 2 Jazzy |
+| Simulator | Gazebo Harmonic (gz-sim) via ros_gz |
+| Nav2 | Navigation2 (for autonomous navigation experiments) |
 | Workspace | ~/thesis/ros2_ws |
-| Python | 3.10+ |
+| Python | 3.12+ |
 
 ## Project Philosophy
 
@@ -44,6 +48,7 @@ not in chat history. Any Claude instance can achieve full context by reading fil
 | slam_launch | SLAM algorithm configs | TF: map→odom |
 | traj_exporter | Export to TUM format | gt.tum, est.tum |
 | experiment_runner | Orchestration + eval | metrics.json, summary.csv |
+| nav_launch | Nav2 + SLAM integration | /navigate_to_pose, nav_results.json |
 
 ## TF Frame Tree (Authoritative)
 
@@ -108,6 +113,8 @@ map                       # SLAM estimate origin
 | M7 | Trajectory export (TUM) | validate_m7.sh |
 | M8 | Evaluation (evo ATE/RPE) | validate_m8.sh |
 | M9 | Batch runner + aggregation | validate_m9.sh |
+| M10 | Nav2 launch package | validate_m10.sh |
+| M11 | Navigation experiments | validate_m11.sh |
 
 ## Quick Commands Reference
 
@@ -130,6 +137,34 @@ ros2 launch rover_control follow_trajectory.launch.py trajectory:=traj_01_easy.c
 # Record dataset
 ros2 launch experiment_runner record_dataset.launch.py trajectory:=traj_01_easy condition:=baseline
 
-# Run evaluation
+# Run SLAM evaluation (bag replay)
 python3 ~/thesis/ros2_ws/src/slam_thesis/experiment_runner/scripts/run_one.py --algo slam_toolbox --bag ~/thesis/ros2_ws/bags/traj_01_easy__baseline
+```
+
+### Nav2 Autonomous Navigation Commands
+
+```bash
+# Launch Nav2 with SLAM-in-the-loop (requires nav_launch package)
+ros2 launch nav_launch nav2_slam.launch.py algorithm:=slam_toolbox
+
+# Launch with Cartographer instead
+ros2 launch nav_launch nav2_slam.launch.py algorithm:=cartographer
+
+# Send a single navigation goal (in another terminal)
+ros2 launch nav_launch send_goal.launch.py x:=2.0 y:=1.0 yaw:=0.0
+
+# Run automated navigation experiment
+python3 ~/thesis/ros2_ws/src/slam_thesis/experiment_runner/scripts/run_nav_experiment.py \
+  --algorithm slam_toolbox \
+  --goals nav_goals_01.yaml \
+  --verbose
+
+# Compare navigation with different SLAM algorithms
+python3 ~/thesis/ros2_ws/src/slam_thesis/experiment_runner/scripts/run_nav_experiment.py \
+  --algorithm cartographer \
+  --goals nav_goals_01.yaml \
+  --verbose
+
+# Check navigation results
+cat ~/thesis/ros2_ws/results/nav_slam_toolbox_*/nav_results.json
 ```
