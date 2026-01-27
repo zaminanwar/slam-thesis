@@ -2,7 +2,7 @@
 """
 Ground truth publisher node for SLAM thesis.
 
-Subscribes to Gazebo P3D plugin output (/gt_odom) and publishes:
+Subscribes to Gazebo model pose (bridged via ros_gz_bridge) and publishes:
 - /gt_pose (nav_msgs/Odometry) at configurable rate
 - TF: map_gt -> base_link
 
@@ -11,37 +11,40 @@ Uses use_sim_time for proper synchronization with simulation/bag replay.
 
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import TransformStamped
+from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
+
+from geometry_msgs.msg import Pose, TransformStamped
 from nav_msgs.msg import Odometry
 from tf2_ros import TransformBroadcaster
 
 
 class GroundTruthPublisher(Node):
-    """Publishes ground truth pose from Gazebo P3D plugin."""
+    """Publishes ground truth pose from Gazebo model state."""
 
     def __init__(self):
         super().__init__('gt_publisher')
 
         # Declare parameters
+        self.declare_parameter('model_name', 'rover')
         self.declare_parameter('publish_rate', 50.0)
 
-        self.publish_rate = self.get_parameter('publish_rate').value
+        self.model_name = self.get_parameter('model_name').get_parameter_value().string_value
+        self.publish_rate = self.get_parameter('publish_rate').get_parameter_value().double_value
 
-        # Store latest odometry from Gazebo P3D plugin
-        self.latest_odom = None
-        self.odom_received = False
+        # Store latest pose from Gazebo
+        self.latest_pose = None
+        self.pose_received = False
 
-        # Subscriber to Gazebo P3D plugin output
-        # P3D plugin publishes Odometry messages directly
-        gt_topic = '/gt_odom'
-        self.odom_sub = self.create_subscription(
-            Odometry,
-            gt_topic,
-            self.odom_callback,
+        # Subscriber to bridged Gazebo pose
+        pose_topic = f'/model/{self.model_name}/pose'
+        self.pose_sub = self.create_subscription(
+            Pose,
+            pose_topic,
+            self.pose_callback,
             10
         )
 
-        # Publisher for ground truth odometry (with proper frame IDs)
+        # Publisher for ground truth odometry
         self.gt_pub = self.create_publisher(Odometry, '/gt_pose', 10)
 
         # TF broadcaster for map_gt -> base_link
@@ -52,30 +55,30 @@ class GroundTruthPublisher(Node):
         self.timer = self.create_timer(timer_period, self.publish_gt)
 
         self.get_logger().info(
-            f'Ground truth publisher started: subscribing to {gt_topic}, '
+            f'Ground truth publisher started: subscribing to {pose_topic}, '
             f'publishing at {self.publish_rate} Hz'
         )
 
-    def odom_callback(self, msg: Odometry):
-        """Store the latest odometry from Gazebo P3D plugin."""
-        self.latest_odom = msg
-        self.odom_received = True
+    def pose_callback(self, msg: Pose):
+        """Store the latest pose from Gazebo."""
+        self.latest_pose = msg
+        self.pose_received = True
 
     def publish_gt(self):
         """Publish ground truth pose and TF."""
-        if not self.odom_received or self.latest_odom is None:
+        if not self.pose_received or self.latest_pose is None:
             return
 
         now = self.get_clock().now()
 
-        # Publish Odometry message with proper frame IDs
+        # Publish Odometry message
         odom = Odometry()
         odom.header.stamp = now.to_msg()
         odom.header.frame_id = 'map_gt'
         odom.child_frame_id = 'base_link'
 
-        # Copy pose from P3D output
-        odom.pose.pose = self.latest_odom.pose.pose
+        # Copy pose
+        odom.pose.pose = self.latest_pose
 
         # Covariance: set small values for ground truth (nearly perfect)
         # 6x6 matrix in row-major: [x, y, z, roll, pitch, yaw]
@@ -86,8 +89,8 @@ class GroundTruthPublisher(Node):
         odom.pose.covariance[28] = 0.001  # pitch
         odom.pose.covariance[35] = 0.001  # yaw
 
-        # Copy twist if available from P3D
-        odom.twist = self.latest_odom.twist
+        # Twist is zero (we don't have velocity from pose alone)
+        # Could be computed from pose differences if needed
 
         self.gt_pub.publish(odom)
 
@@ -97,14 +100,14 @@ class GroundTruthPublisher(Node):
         tf_msg.header.frame_id = 'map_gt'
         tf_msg.child_frame_id = 'base_link'
 
-        tf_msg.transform.translation.x = self.latest_odom.pose.pose.position.x
-        tf_msg.transform.translation.y = self.latest_odom.pose.pose.position.y
-        tf_msg.transform.translation.z = self.latest_odom.pose.pose.position.z
+        tf_msg.transform.translation.x = self.latest_pose.position.x
+        tf_msg.transform.translation.y = self.latest_pose.position.y
+        tf_msg.transform.translation.z = self.latest_pose.position.z
 
-        tf_msg.transform.rotation.x = self.latest_odom.pose.pose.orientation.x
-        tf_msg.transform.rotation.y = self.latest_odom.pose.pose.orientation.y
-        tf_msg.transform.rotation.z = self.latest_odom.pose.pose.orientation.z
-        tf_msg.transform.rotation.w = self.latest_odom.pose.pose.orientation.w
+        tf_msg.transform.rotation.x = self.latest_pose.orientation.x
+        tf_msg.transform.rotation.y = self.latest_pose.orientation.y
+        tf_msg.transform.rotation.z = self.latest_pose.orientation.z
+        tf_msg.transform.rotation.w = self.latest_pose.orientation.w
 
         self.tf_broadcaster.sendTransform(tf_msg)
 

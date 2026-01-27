@@ -1,16 +1,15 @@
 """
-Gazebo Classic simulation launch file for SLAM thesis rover.
+Gazebo Harmonic simulation launch file for SLAM thesis rover.
 
 Launches:
-- Gazebo Classic with simple world
+- Gazebo Harmonic (gz-sim) with simple world
 - Robot spawned at origin
+- ros_gz_bridge for topic bridging (cmd_vel, odom, scan, tf, clock)
 - robot_state_publisher for URDF and static TFs
-
-Note: Gazebo Classic plugins publish ROS topics directly (no bridge needed).
 
 Usage:
   ros2 launch rover_sim sim.launch.py
-  ros2 launch rover_sim sim.launch.py world:=simple.world
+  ros2 launch rover_sim sim.launch.py world:=simple.sdf
 """
 
 import os
@@ -28,12 +27,12 @@ def generate_launch_description():
     # Package directories
     pkg_rover_description = get_package_share_directory('rover_description')
     pkg_rover_sim = get_package_share_directory('rover_sim')
-    pkg_gazebo_ros = get_package_share_directory('gazebo_ros')
+    pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
 
     # Launch arguments
     world_arg = DeclareLaunchArgument(
         'world',
-        default_value='simple.world',
+        default_value='simple.sdf',
         description='World file name (in rover_sim/worlds/)'
     )
 
@@ -49,30 +48,38 @@ def generate_launch_description():
         pkg_rover_sim, 'worlds', LaunchConfiguration('world')
     ])
 
-    # Robot description from xacro
+    # Robot description from xacro (wrapped for Jazzy compatibility)
     robot_description = ParameterValue(Command(['xacro ', urdf_path]), value_type=str)
 
-    # Set Gazebo model path for custom models
-    gz_model_path = SetEnvironmentVariable(
-        name='GAZEBO_MODEL_PATH',
+    # Set Gazebo resource path for models
+    gz_resource_path = SetEnvironmentVariable(
+        name='GZ_SIM_RESOURCE_PATH',
         value=os.path.join(pkg_rover_sim, 'worlds')
     )
 
-    # Gazebo server (headless physics simulation)
-    gz_server = IncludeLaunchDescription(
+    # Gazebo Harmonic (gz-sim) launch
+    gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(pkg_gazebo_ros, 'launch', 'gzserver.launch.py')
+            os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')
         ),
         launch_arguments={
-            'world': world_path,
+            'gz_args': ['-r ', world_path],
+            'on_exit_shutdown': 'true'
         }.items()
     )
 
-    # Gazebo client (GUI)
-    gz_client = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(pkg_gazebo_ros, 'launch', 'gzclient.launch.py')
-        )
+    # Spawn robot in Gazebo
+    spawn_robot = Node(
+        package='ros_gz_sim',
+        executable='create',
+        arguments=[
+            '-name', 'rover',
+            '-topic', 'robot_description',
+            '-x', '0.0',
+            '-y', '0.0',
+            '-z', '0.1',
+        ],
+        output='screen'
     )
 
     # Robot state publisher (publishes URDF and static TFs)
@@ -86,17 +93,29 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Spawn robot in Gazebo using spawn_entity.py
-    spawn_robot = Node(
-        package='gazebo_ros',
-        executable='spawn_entity.py',
+    # ros_gz_bridge for topic bridging between Gazebo and ROS 2
+    # Bridge configuration:
+    # - /clock: Gazebo -> ROS (for use_sim_time)
+    # - /cmd_vel: ROS -> Gazebo (velocity commands)
+    # - /odom: Gazebo -> ROS (odometry)
+    # - /scan: Gazebo -> ROS (LiDAR)
+    # - /tf: Gazebo -> ROS (transforms)
+    # - /joint_states: Gazebo -> ROS (wheel positions)
+    bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
         arguments=[
-            '-topic', 'robot_description',
-            '-entity', 'rover',
-            '-x', '0.0',
-            '-y', '0.0',
-            '-z', '0.1',
+            '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
+            '/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist',
+            '/odom@nav_msgs/msg/Odometry[gz.msgs.Odometry',
+            '/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
+            '/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V',
+            '/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model',
+            '/model/rover/pose@geometry_msgs/msg/Pose[gz.msgs.Pose',
         ],
+        parameters=[{
+            'use_sim_time': LaunchConfiguration('use_sim_time')
+        }],
         output='screen'
     )
 
@@ -106,13 +125,11 @@ def generate_launch_description():
         use_sim_time_arg,
 
         # Environment
-        gz_model_path,
+        gz_resource_path,
 
-        # Gazebo
-        gz_server,
-        gz_client,
-
-        # Robot
+        # Nodes
+        gz_sim,
         robot_state_publisher,
         spawn_robot,
+        bridge,
     ])
