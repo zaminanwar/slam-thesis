@@ -1,0 +1,40 @@
+# Navigation goals for complex exploration experiment
+# Robot explores a larger area with more varied waypoints
+# Tests Nav2 performance with longer paths and more turns
+# Designed for environments with some obstacles
+
+goals:
+  - x: 2.0
+    y: 0.0
+    yaw: 0.0
+    name: "waypoint_1"
+
+  - x: 4.0
+    y: 1.5
+    yaw: 0.78  # 45 degrees
+    name: "waypoint_2"
+
+  - x: 3.5
+    y: 4.0
+    yaw: 1.57  # 90 degrees
+    name: "waypoint_3"
+
+  - x: 1.0
+    y: 4.5
+    yaw: 2.36  # 135 degrees
+    name: "waypoint_4"
+
+  - x: -1.0
+    y: 2.5
+    yaw: 3.14  # 180 degrees
+    name: "waypoint_5"
+
+  - x: -0.5
+    y: 0.5
+    yaw: -2.36  # -135 degrees
+    name: "waypoint_6"
+
+  - x: 0.0
+    y: 0.0
+    yaw: 0.0  # back to origin
+    name: "waypoint_7_return"

@@ -1,0 +1,24 @@
+# Navigation goals for simple square path experiment
+# Robot starts at origin (0, 0) and visits 4 corners of a square
+# Suitable for basic Nav2 validation in simple.sdf world
+
+goals:
+  - x: 3.0
+    y: 0.0
+    yaw: 0.0
+    name: "point_1_east"
+
+  - x: 3.0
+    y: 3.0
+    yaw: 1.57  # 90 degrees, facing north
+    name: "point_2_northeast"
+
+  - x: 0.0
+    y: 3.0
+    yaw: 3.14  # 180 degrees, facing west
+    name: "point_3_north"
+
+  - x: 0.0
+    y: 0.0
+    yaw: -1.57  # -90 degrees, facing south (back to start)
+    name: "point_4_origin"
