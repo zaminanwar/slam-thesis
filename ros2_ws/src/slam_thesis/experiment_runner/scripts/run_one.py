@@ -11,7 +11,7 @@ Usage:
 
 Output:
     Creates in the bag directory:
-    - gt_trajectory.tum: Ground truth trajectory (odom -> base_footprint)
+    - gt_trajectory.tum: Ground truth trajectory (map_gt -> base_footprint_gt, true GT from Gazebo)
     - est_trajectory.tum: SLAM estimated trajectory (map -> base_footprint)
     - results/metrics.json: ATE/RPE evaluation metrics
     - results/ate_plot.png: Trajectory comparison plot (optional)
@@ -162,18 +162,18 @@ def run_slam_with_export(
         # Wait for SLAM to initialize (matches launch file delay)
         time.sleep(3.0)
 
-        # Build GT exporter command (odom -> base_footprint for ground truth)
+        # Build GT exporter command (map_gt -> base_footprint_gt for TRUE ground truth)
         gt_export_cmd = [
             'ros2', 'launch', 'traj_exporter', 'export_trajectory.launch.py',
             f'output_file:={gt_file}',
-            'parent_frame:=odom',
-            'child_frame:=base_footprint',
+            'parent_frame:=map_gt',
+            'child_frame:=base_footprint_gt',
             'sample_rate:=10.0',
             'use_sim_time:=true',
         ]
 
         if verbose:
-            print(f"[run_one] Starting GT exporter: odom -> base_footprint")
+            print(f"[run_one] Starting GT exporter: map_gt -> base_footprint_gt")
 
         # Start GT exporter
         gt_proc = subprocess.Popen(

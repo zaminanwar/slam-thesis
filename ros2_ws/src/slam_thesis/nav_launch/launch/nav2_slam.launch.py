@@ -48,7 +48,6 @@ def generate_launch_description():
 
     algorithm_arg = DeclareLaunchArgument(
         'algorithm',
-        default_value='slam_toolbox',
         choices=['slam_toolbox', 'cartographer'],
         description='SLAM algorithm to use'
     )
@@ -206,7 +205,6 @@ def generate_launch_description():
             Node(
                 package='nav2_velocity_smoother',
                 executable='velocity_smoother',
-                name='velocity_smoother',
                 output='screen',
                 parameters=[nav2_params],
                 remappings=[
@@ -225,6 +223,7 @@ def generate_launch_description():
                     'use_sim_time': LaunchConfiguration('use_sim_time'),
                     'autostart': LaunchConfiguration('autostart'),
                     'node_names': [
+                        'slam_toolbox',
                         'controller_server',
                         'planner_server',
                         'behavior_server',

@@ -75,7 +75,7 @@ class GroundTruthPublisher(Node):
         odom = Odometry()
         odom.header.stamp = now.to_msg()
         odom.header.frame_id = 'map_gt'
-        odom.child_frame_id = 'base_link'
+        odom.child_frame_id = 'base_footprint_gt'
 
         # Copy pose
         odom.pose.pose = self.latest_pose
@@ -98,7 +98,7 @@ class GroundTruthPublisher(Node):
         tf_msg = TransformStamped()
         tf_msg.header.stamp = now.to_msg()
         tf_msg.header.frame_id = 'map_gt'
-        tf_msg.child_frame_id = 'base_link'
+        tf_msg.child_frame_id = 'base_footprint_gt'
 
         tf_msg.transform.translation.x = self.latest_pose.position.x
         tf_msg.transform.translation.y = self.latest_pose.position.y
