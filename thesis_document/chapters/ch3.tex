@@ -1,0 +1,210 @@
+\chapter{Methodology}
+\label{ch:methodology}
+
+This chapter describes the experimental methodology employed to compare SLAM Toolbox and Cartographer in the context of autonomous navigation. We detail the simulation platform, robot model, SLAM configurations, navigation stack, experimental design, evaluation metrics, and experimental protocol.
+
+\section{Simulation Platform}
+
+All experiments were conducted in the Gazebo Harmonic simulator (gz-sim~8) integrated with ROS~2 Jazzy Jalisco running on Ubuntu~24.04 under Windows Subsystem for Linux~2 (WSL2). Gazebo Harmonic was selected as the simulation environment for several reasons: it provides high-fidelity rigid-body physics simulation, native ROS~2 integration through the \texttt{ros\_gz} bridge packages, accurate sensor simulation including ray-based LiDAR, and deterministic physics stepping that supports experimental reproducibility.
+
+The simulation operates with a physics time step of 1\,ms and a real-time factor of 1.0, meaning simulation time advances at the same rate as wall-clock time. All ROS~2 nodes are synchronized to simulation time via the \texttt{/clock} topic, ensuring consistent temporal behavior across components.
+
+\section{Robot Model}
+
+The experimental platform is a differential-drive rover modeled as a Unified Robot Description Format (URDF) file with Xacro macros. Table~\ref{tab:robot_specs} summarizes the rover's physical parameters.
+
+\begin{table}[htbp]
+\centering
+\caption{Rover physical specifications.}
+\label{tab:robot_specs}
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Chassis dimensions & 0.40\,m $\times$ 0.30\,m $\times$ 0.15\,m \\
+Chassis mass & 5.0\,kg \\
+Wheel radius & 0.075\,m \\
+Wheel width & 0.04\,m \\
+Wheel separation & 0.34\,m \\
+Wheel mass & 0.5\,kg (each) \\
+Drive type & Differential drive \\
+Caster wheel & Rear, radius 0.03\,m \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The rover is equipped with a 2D LiDAR sensor mounted on top of the chassis. The LiDAR specifications are listed in Table~\ref{tab:lidar_specs}.
+
+\begin{table}[htbp]
+\centering
+\caption{LiDAR sensor specifications.}
+\label{tab:lidar_specs}
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Scan type & 2D planar \\
+Field of view & 360$^\circ$ \\
+Angular resolution & Automatic (Gazebo default) \\
+Update rate & 10\,Hz \\
+Minimum range & 0.1\,m \\
+Maximum range & 10.0\,m \\
+Frame ID & \texttt{laser\_frame} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The differential drive plugin in Gazebo simulates wheel kinematics and publishes odometry on the \texttt{/odom} topic with the transform \texttt{odom}$\rightarrow$\texttt{base\_footprint}. Sensor data is bridged to ROS~2 topics via the \texttt{ros\_gz\_bridge} package.
+
+\section{Simulation Environment}
+
+Experiments were conducted in a bounded 10$\times$10\,m room defined in SDF (Simulation Description Format). The environment consists of four enclosing walls and several interior obstacles of varying sizes and positions, providing geometric features for scan matching and loop closure detection. The ground plane is flat, consistent with the 2D SLAM assumption.
+
+The environment was designed to be simple enough to permit successful navigation for both algorithms while providing sufficient geometric structure for meaningful SLAM evaluation. The walls and obstacles create distinct scan signatures at different locations, enabling the SLAM algorithms to disambiguate positions within the environment.
+
+\section{Ground Truth System}
+
+Ground truth poses are obtained directly from the Gazebo simulator, which maintains exact knowledge of all model positions. The model pose is published via the \texttt{ros\_gz\_bridge} at approximately 35\,Hz on the \texttt{/model/rover/pose} topic.
+
+A custom \texttt{gt\_publisher} ROS~2 node subscribes to the model pose and republishes it in two forms: as an Odometry message on the \texttt{/gt\_pose} topic and as a transform broadcast on a \emph{dedicated transform tree}. Specifically, the ground truth transform is published as \texttt{map\_gt}$\rightarrow$\texttt{base\_footprint\_gt}, using frame names that are entirely separate from the SLAM transform tree (\texttt{map}$\rightarrow$\texttt{odom}$\rightarrow$\texttt{base\_footprint}).
+
+This separation is essential because the ROS~2 transform system (TF2) requires each frame to have exactly one parent. If the ground truth publisher broadcast directly to the \texttt{base\_link} or \texttt{base\_footprint} frame, it would create a conflict with the existing URDF-defined parent, resulting in a disconnected transform tree and lookup failures throughout the system. The dedicated ground truth frame names avoid this conflict entirely.
+
+\section{SLAM Algorithm Configuration}
+
+Both algorithms were configured with their published default parameters, adjusted only for robot-specific geometry (frame names, sensor topic, and LiDAR range). This approach ensures a fair comparison that reflects typical practitioner deployment behavior rather than optimized best-case performance.
+
+\subsection{SLAM Toolbox Configuration}
+
+SLAM Toolbox was operated in asynchronous mapping mode, which processes laser scans as they arrive without blocking the sensor pipeline. Key configuration parameters include:
+
+\begin{itemize}
+\item \textbf{Solver}: Ceres Solver with SPARSE\_NORMAL\_CHOLESKY linear solver and SCHUR\_JACOBI preconditioner
+\item \textbf{Grid resolution}: 0.05\,m (5\,cm)
+\item \textbf{Maximum laser range}: 10.0\,m (matching LiDAR specification)
+\item \textbf{Minimum travel distance}: 0.1\,m between scan insertions
+\item \textbf{Loop closure}: Enabled with search radius of 3.0\,m
+\item \textbf{Transform publish rate}: 50\,Hz
+\item \textbf{Frame configuration}: \texttt{odom\_frame=odom}, \texttt{map\_frame=map}, \texttt{base\_frame=base\_footprint}
+\end{itemize}
+
+SLAM Toolbox operates as a ROS~2 lifecycle node and is activated through the Nav2 lifecycle manager during system startup.
+
+\subsection{Cartographer Configuration}
+
+Cartographer was configured for 2D SLAM without IMU data (the rover does not carry an inertial measurement unit). Key parameters include:
+
+\begin{itemize}
+\item \textbf{Submap size}: 90 range data insertions per submap
+\item \textbf{Grid resolution}: 0.05\,m (5\,cm)
+\item \textbf{Correlative scan matching}: Enabled with 0.1\,m linear and 20$^\circ$ angular search windows
+\item \textbf{Ceres scan matcher}: Translation weight 10.0, rotation weight 40.0
+\item \textbf{Motion filter}: Maximum 5\,s, 0.2\,m, or 1$^\circ$ between processed scans
+\item \textbf{Loop closure}: Branch-and-bound with 7.0\,m linear and 30$^\circ$ angular search windows
+\item \textbf{Optimization frequency}: Every 90 nodes
+\item \textbf{Frame configuration}: \texttt{tracking\_frame=base\_footprint}, \texttt{published\_frame=odom}
+\end{itemize}
+
+Unlike SLAM Toolbox, Cartographer is not a lifecycle node and begins operation immediately upon launch.
+
+\subsection{Configuration Fairness}
+
+Both algorithms use published default parameters adjusted only for the rover's specific frame names, sensor topics, and physical sensor range. No algorithm-specific tuning was performed to optimize accuracy for this particular environment. This methodological choice reflects the practical scenario where a robotics engineer deploys an algorithm with reasonable default settings. We acknowledge that algorithm-specific tuning could potentially narrow or widen the accuracy gap and discuss this as a limitation in Chapter~\ref{ch:discussion}.
+
+\section{Navigation Stack}
+
+The Nav2 navigation framework provides autonomous goal-directed navigation using the SLAM algorithm's localization output. Our configuration employs SLAM-in-the-loop operation, where the running SLAM algorithm provides both the occupancy grid map and the localization transform, eliminating the need for a separate localization module such as AMCL.
+
+\subsection{Component Configuration}
+
+Table~\ref{tab:nav2_config} summarizes the Nav2 component configuration.
+
+\begin{table}[htbp]
+\centering
+\caption{Nav2 navigation stack configuration.}
+\label{tab:nav2_config}
+\begin{tabular}{lll}
+\toprule
+\textbf{Component} & \textbf{Plugin} & \textbf{Key Parameters} \\
+\midrule
+Global Planner & NavfnPlanner & Tolerance: 0.5\,m, Dijkstra \\
+Local Controller & DWB & Max vel: 0.5\,m/s, 20 samples \\
+Goal Checker & SimpleGoalChecker & XY tolerance: 0.25\,m \\
+Progress Checker & SimpleProgressChecker & 0.5\,m in 10\,s \\
+Behavior Tree & Replanning + Recovery & Default Nav2 BT \\
+Recovery & Spin, Backup, Wait & Standard defaults \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The DWB local planner was selected for its suitability with differential-drive robots. It samples candidate velocity trajectories (20 linear $\times$ 20 angular samples) over a 1.7\,s simulation horizon and scores them against multiple critic functions including path alignment, goal distance, obstacle proximity, and oscillation suppression. The maximum linear velocity of 0.5\,m/s and angular velocity of 1.0\,rad/s reflect the rover's physical capabilities.
+
+\subsection{Lifecycle Management}
+
+Nav2 nodes are managed through a lifecycle manager that activates components in a specific order. The SLAM algorithm is activated first to ensure that the \texttt{map}$\rightarrow$\texttt{odom} transform is available before the costmap and planner nodes attempt to use it. A 5-second delay between simulation launch and Nav2 activation provides additional time for the simulation to stabilize and initial sensor data to be processed.
+
+\section{Experimental Design}
+
+\subsection{Navigation Goal Sets}
+
+Three goal sets of increasing complexity were designed to evaluate algorithm performance across different navigational demands. Each goal set defines a sequence of $(x, y, \theta)$ waypoints that the robot must visit in order using the Nav2 NavigateToPose action.
+
+\begin{description}
+\item[Goal Set 1: Simple Square] Four waypoints forming a square path in the positive quadrant: $(3, 0)$, $(3, 3)$, $(0, 3)$, $(0, 0)$. Approximate path length: 12\,m. This baseline test evaluates algorithm performance on a short, geometrically simple trajectory with four 90$^\circ$ turns.
+
+\item[Goal Set 2: Exploration] Seven waypoints covering a broader area including negative coordinates: $(2, 0)$, $(4, 1.5)$, $(3.5, 4)$, $(1, 4.5)$, $(-1, 2.5)$, $(-0.5, 0.5)$, $(0, 0)$. Approximate path length: 15\,m. This test introduces varied heading angles, longer inter-goal distances, and navigation through previously unmapped regions.
+
+\item[Goal Set 3: Perimeter with Revisits] Eleven waypoints tracing the full environment perimeter with subsequent revisitation of interior points: $(3.5, 0)$, $(4, 3.5)$, $(0, 4)$, $(-3.5, 3.5)$, $(-4, 0)$, $(-3.5, -3.5)$, $(0, -4)$, $(3.5, -3.5)$, $(2, 0)$, $(-2, 0)$, $(0, 0)$. Approximate path length: 35\,m. This challenging trajectory covers all four quadrants, includes eight 90$^\circ$ turns, and tests loop closure capability through deliberate revisitation of previously traversed areas.
+\end{description}
+
+The three goal sets provide a progression in multiple dimensions: path length (12$\rightarrow$15$\rightarrow$35\,m), number of waypoints (4$\rightarrow$7$\rightarrow$11), turning frequency, and exposure to loop closure opportunities.
+
+\section{Evaluation Metrics}
+
+\subsection{SLAM Accuracy Metrics}
+
+Trajectory accuracy is assessed using the Absolute Trajectory Error (ATE) and Relative Pose Error (RPE), following the methodology established by \citet{sturm2012benchmark} and implemented in the \texttt{evo} library \citep{grupp2017evo}.
+
+The ATE is computed by first aligning the estimated trajectory to the ground truth using the Umeyama method \citep{umeyama1991}, which finds the rigid-body transformation $S \in SE(3)$ minimizing the sum of squared position errors:
+\begin{equation}
+S^* = \arg\min_S \sum_{i=1}^{n} \| p_i^{gt} - S \cdot p_i^{est} \|^2
+\label{eq:alignment}
+\end{equation}
+The ATE RMSE is then:
+\begin{equation}
+\text{ATE}_{\text{RMSE}} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} \| p_i^{gt} - S^* \cdot p_i^{est} \|^2}
+\label{eq:ate}
+\end{equation}
+
+The RPE measures local accuracy by comparing relative transformations between consecutive poses:
+\begin{equation}
+\text{RPE}_{\text{RMSE}} = \sqrt{\frac{1}{n-1} \sum_{i=1}^{n-1} \| \text{trans}(\delta_i^{gt} \cdot (\delta_i^{est})^{-1}) \|^2}
+\label{eq:rpe}
+\end{equation}
+where $\delta_i = p_i^{-1} \cdot p_{i+1}$ is the relative transformation between consecutive poses. In our experiments, RPE is computed with a frame-based delta of 1, measuring the relative error between each pair of consecutive synchronized poses.
+
+\subsection{Navigation Metrics}
+
+Navigation performance is assessed through three metrics:
+\begin{itemize}
+\item \textbf{Success rate}: The fraction of commanded goals successfully reached, where success is defined by the Nav2 SimpleGoalChecker (within 0.25\,m of the goal position).
+\item \textbf{Per-goal time}: The elapsed time between sending a NavigateToPose goal and receiving a success or failure result.
+\item \textbf{Total mission time}: The sum of all per-goal times plus inter-goal delays.
+\end{itemize}
+
+\section{Experimental Protocol}
+
+Each experimental configuration (algorithm $\times$ goal set) is executed three times to assess run-to-run variability. The experimental protocol for each run proceeds as follows:
+
+\begin{enumerate}
+\item All prior ROS and Gazebo processes are terminated to ensure a clean environment.
+\item The Nav2 SLAM launch file is started, which spawns Gazebo, the robot model, the SLAM algorithm, the ground truth publisher, and the Nav2 navigation stack.
+\item A 25-second startup delay allows the simulation to initialize, the SLAM algorithm to process initial scans, and the Nav2 lifecycle manager to activate all nodes.
+\item Two trajectory exporter nodes are started: one recording the ground truth trajectory (\texttt{map\_gt}$\rightarrow$\texttt{base\_footprint\_gt}) and one recording the SLAM estimate (\texttt{map}$\rightarrow$\texttt{base\_footprint}), both writing to TUM-format files at 10\,Hz.
+\item Navigation goals are sent sequentially via the NavigateToPose action. For each goal, the elapsed time and success/failure status are recorded.
+\item After the final goal completes, trajectory exporters are stopped and their output files are flushed.
+\item The \texttt{evo} library computes ATE and RPE metrics from the recorded trajectory files, with trajectory alignment and plot generation.
+\item All processes are terminated in preparation for the next run.
+\end{enumerate}
+
+The complete batch of 18 experiments (2 algorithms $\times$ 3 goal sets $\times$ 3 repetitions) is orchestrated by an automated batch runner that manages process cleanup, progress tracking, and result aggregation.

@@ -1,0 +1,215 @@
+\chapter{Results}
+\label{ch:results}
+
+This chapter presents the experimental results from the complete set of 18 trials. We report navigation success rates, SLAM trajectory accuracy (ATE and RPE), navigation timing, scaling behavior across trajectory complexity levels, and run-to-run consistency.
+
+\section{Experimental Overview}
+
+A total of 18 experiments were executed: 2 algorithms (SLAM Toolbox, Cartographer) $\times$ 3 goal sets (Simple, Moderate, Complex) $\times$ 3 repetitions per configuration. All experiments were conducted on a single workstation running WSL2 on Windows~11 with 12 CPU threads available. Each experiment proceeded through the full pipeline of simulation startup, SLAM initialization, Nav2 activation, goal execution, trajectory export, and metric computation. Table~\ref{tab:experiment_matrix} summarizes the experimental configuration.
+
+\begin{table}[htbp]
+\centering
+\caption{Experiment matrix.}
+\label{tab:experiment_matrix}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Goal Set} & \textbf{Waypoints} & \textbf{Path Length} & \textbf{Repetitions per Algorithm} \\
+\midrule
+Simple (goals\_01) & 4 & $\sim$12\,m & 3 \\
+Moderate (goals\_02) & 7 & $\sim$15\,m & 3 \\
+Complex (goals\_03) & 11 & $\sim$35\,m & 3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Navigation Success}
+
+Both algorithms achieved a 100\% navigation success rate across all 18 experiments. Every waypoint in every goal set was successfully reached within the timeout period for all three repetitions of each configuration. Table~\ref{tab:nav_success} presents the success rates.
+
+\begin{table}[htbp]
+\centering
+\caption{Navigation success rate by algorithm and goal set (all runs).}
+\label{tab:nav_success}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Algorithm} & \textbf{Simple (4 goals)} & \textbf{Moderate (7 goals)} & \textbf{Complex (11 goals)} \\
+\midrule
+SLAM Toolbox & 4/4 (100\%) & 7/7 (100\%) & 11/11 (100\%) \\
+Cartographer & 4/4 (100\%) & 7/7 (100\%) & 11/11 (100\%) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This result establishes the first key finding: both SLAM algorithms provide sufficient localization quality for Nav2 to complete autonomous navigation tasks in this environment, regardless of trajectory complexity.
+
+\section{SLAM Accuracy: Absolute Trajectory Error}
+
+While both algorithms succeed at navigation, they exhibit substantial differences in SLAM trajectory accuracy. Table~\ref{tab:ate_results} presents the ATE RMSE results across all configurations, and Figure~\ref{fig:ate_comparison} visualizes the comparison.
+
+\begin{table}[htbp]
+\centering
+\caption{Absolute Trajectory Error RMSE (cm): mean $\pm$ standard deviation across 3 runs.}
+\label{tab:ate_results}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Algorithm} & \textbf{Simple} & \textbf{Moderate} & \textbf{Complex} \\
+\midrule
+SLAM Toolbox & $0.96 \pm 0.10$ & $1.32 \pm 0.29$ & $2.84 \pm 0.74$ \\
+Cartographer & $10.82 \pm 0.29$ & $10.65 \pm 1.05$ & $18.09 \pm 1.68$ \\
+\midrule
+\textbf{Ratio (CG/ST)} & \textbf{11.3$\times$} & \textbf{8.1$\times$} & \textbf{6.4$\times$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{ate_comparison.png}
+\caption{Absolute Trajectory Error comparison across goal sets. Error bars indicate standard deviation across 3 runs. SLAM Toolbox achieves consistently lower ATE across all complexity levels.}
+\label{fig:ate_comparison}
+\end{figure}
+
+SLAM Toolbox achieves ATE RMSE values of 0.96--2.84\,cm across the three goal sets, while Cartographer produces ATE RMSE values of 10.82--18.09\,cm. The accuracy ratio ranges from 11.3$\times$ on the simple trajectory to 6.4$\times$ on the complex trajectory, with the gap narrowing as complexity increases. Figure~\ref{fig:accuracy_ratio} illustrates this trend.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.7\textwidth]{accuracy_ratio.png}
+\caption{ATE accuracy ratio (Cartographer / SLAM Toolbox) across goal sets. The ratio decreases from 11.3$\times$ to 6.4$\times$ as trajectory complexity increases.}
+\label{fig:accuracy_ratio}
+\end{figure}
+
+Table~\ref{tab:ate_individual} presents the individual run ATE values, showing the consistency of results across repetitions.
+
+\begin{table}[htbp]
+\centering
+\caption{Individual run ATE RMSE values (cm).}
+\label{tab:ate_individual}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Algorithm} & \textbf{Goal Set} & \textbf{Run 1} & \textbf{Run 2} & \textbf{Run 3} \\
+\midrule
+SLAM Toolbox & Simple & 1.05 & 0.85 & 0.99 \\
+SLAM Toolbox & Moderate & 1.44 & 0.99 & 1.54 \\
+SLAM Toolbox & Complex & 2.42 & 2.42 & 3.69 \\
+\midrule
+Cartographer & Simple & 11.13 & 10.76 & 10.57 \\
+Cartographer & Moderate & 11.04 & 9.47 & 11.46 \\
+Cartographer & Complex & 16.21 & 18.56 & 19.48 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The ATE distributions are further visualized as box plots in Figure~\ref{fig:ate_boxplots}, showing the spread of individual measurements for each configuration.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{ate_boxplots.png}
+\caption{Box plots of ATE RMSE distributions for each algorithm across the three goal sets. Individual data points are overlaid.}
+\label{fig:ate_boxplots}
+\end{figure}
+
+\section{SLAM Accuracy: Relative Pose Error}
+
+The Relative Pose Error captures local accuracy independent of global drift. Table~\ref{tab:rpe_results} presents the RPE RMSE results, and Figure~\ref{fig:rpe_comparison} shows the visual comparison.
+
+\begin{table}[htbp]
+\centering
+\caption{Relative Pose Error RMSE (cm): mean across 3 runs.}
+\label{tab:rpe_results}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Algorithm} & \textbf{Simple} & \textbf{Moderate} & \textbf{Complex} \\
+\midrule
+SLAM Toolbox & 0.56 & 0.57 & 0.68 \\
+Cartographer & 0.93 & 1.15 & 2.02 \\
+\midrule
+\textbf{Ratio (CG/ST)} & \textbf{1.7$\times$} & \textbf{2.0$\times$} & \textbf{3.0$\times$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{rpe_comparison.png}
+\caption{Relative Pose Error comparison across goal sets.}
+\label{fig:rpe_comparison}
+\end{figure}
+
+The RPE ratio between algorithms (1.7--3.0$\times$) is notably smaller than the ATE ratio (6.4--11.3$\times$). This indicates that the primary accuracy difference lies in \emph{global consistency} rather than \emph{local scan matching quality}. Both algorithms produce reasonable local pose estimates, but SLAM Toolbox maintains better global trajectory coherence, likely due to differences in their pose graph optimization strategies.
+
+\section{Navigation Time Analysis}
+
+Table~\ref{tab:time_results} presents the mean total mission time for each configuration, and Figure~\ref{fig:time_comparison} provides a visual comparison.
+
+\begin{table}[htbp]
+\centering
+\caption{Total navigation time (seconds): mean $\pm$ standard deviation across 3 runs.}
+\label{tab:time_results}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Algorithm} & \textbf{Simple} & \textbf{Moderate} & \textbf{Complex} \\
+\midrule
+SLAM Toolbox & $45.9 \pm 2.2$ & $70.9 \pm 0.9$ & $156.4 \pm 0.2$ \\
+Cartographer & $48.9 \pm 0.6$ & $74.5 \pm 3.0$ & $156.8 \pm 2.3$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{time_comparison.png}
+\caption{Navigation time comparison across goal sets.}
+\label{fig:time_comparison}
+\end{figure}
+
+Navigation times are remarkably similar between algorithms, with differences of less than 7\% across all goal sets. On the complex trajectory, the times are nearly identical (156.4\,s vs.\ 156.8\,s). This finding reinforces the observation that the substantial SLAM accuracy difference does not translate to a measurable navigation performance difference within this experimental context.
+
+\section{Scaling Behavior}
+
+Figure~\ref{fig:ate_scaling} shows how ATE RMSE scales with approximate trajectory length for both algorithms.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{ate_scaling.png}
+\caption{ATE RMSE as a function of trajectory length. Both algorithms show approximately linear error growth, but from substantially different baselines. Error bars indicate standard deviation.}
+\label{fig:ate_scaling}
+\end{figure}
+
+Both algorithms exhibit approximately linear ATE growth with trajectory length, consistent with the expected drift accumulation in SLAM systems. SLAM Toolbox's error grows from 0.96\,cm at 12\,m to 2.84\,cm at 35\,m---a rate of approximately 0.08\,cm per meter of travel. Cartographer's error grows from 10.82\,cm to 18.09\,cm over the same range---a rate of approximately 0.32\,cm per meter, roughly 4$\times$ the drift rate of SLAM Toolbox.
+
+Notably, Cartographer's ATE on the moderate trajectory (10.65\,cm) is slightly \emph{lower} than on the simple trajectory (10.82\,cm), suggesting some run-to-run variability in its baseline accuracy rather than a strictly monotonic degradation.
+
+\section{Run-to-Run Consistency}
+
+Figure~\ref{fig:individual_runs_scatter} displays all 18 individual ATE measurements, providing a view of both between-algorithm and within-algorithm variability.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{individual_runs_scatter.png}
+\caption{Individual run ATE RMSE values for all 18 experiments. Points are jittered horizontally for visibility.}
+\label{fig:individual_runs_scatter}
+\end{figure}
+
+SLAM Toolbox demonstrates high consistency on the simple and moderate trajectories (standard deviations of 0.10\,cm and 0.29\,cm, respectively), with somewhat more variability on the complex trajectory (0.74\,cm). Cartographer shows similar consistency on the simple trajectory (0.29\,cm) but increasing variability with complexity (1.05\,cm and 1.68\,cm for moderate and complex trajectories). This pattern suggests that longer, more complex trajectories introduce more stochastic variation in SLAM performance, particularly for Cartographer.
+
+\section{Summary of Results}
+
+Table~\ref{tab:consolidated_results} provides a consolidated view of all key metrics.
+
+\begin{table}[htbp]
+\centering
+\caption{Consolidated experimental results (mean $\pm$ std, $n=3$).}
+\label{tab:consolidated_results}
+\begin{tabular}{llccccc}
+\toprule
+\textbf{Algorithm} & \textbf{Goals} & \textbf{Success} & \textbf{ATE (cm)} & \textbf{RPE (cm)} & \textbf{Time (s)} \\
+\midrule
+SLAM Toolbox & Simple & 100\% & $0.96 \pm 0.10$ & 0.56 & $45.9$ \\
+SLAM Toolbox & Moderate & 100\% & $1.32 \pm 0.29$ & 0.57 & $70.9$ \\
+SLAM Toolbox & Complex & 100\% & $2.84 \pm 0.74$ & 0.68 & $156.4$ \\
+Cartographer & Simple & 100\% & $10.82 \pm 0.29$ & 0.93 & $48.9$ \\
+Cartographer & Moderate & 100\% & $10.65 \pm 1.05$ & 1.15 & $74.5$ \\
+Cartographer & Complex & 100\% & $18.09 \pm 1.68$ & 2.02 & $156.8$ \\
+\bottomrule
+\end{tabular}
+\end{table}

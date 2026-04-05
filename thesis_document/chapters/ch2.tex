@@ -1,0 +1,132 @@
+\chapter{Background and Related Work}
+\label{ch:background}
+
+\section{Simultaneous Localization and Mapping}
+
+The SLAM problem requires a robot to incrementally build a map of an unknown environment while simultaneously using that map to determine its own position \citep{thrun2005probabilistic}. This circular dependency---accurate mapping requires accurate localization, and accurate localization requires an accurate map---makes SLAM one of the fundamental challenges in mobile robotics.
+
+\subsection{Problem Formulation}
+
+Formally, the SLAM problem can be stated as follows. Given a sequence of sensor observations $z_{1:t} = \{z_1, z_2, \ldots, z_t\}$ and control inputs $u_{1:t} = \{u_1, u_2, \ldots, u_t\}$, estimate the posterior probability of the robot's trajectory $x_{0:t} = \{x_0, x_1, \ldots, x_t\}$ and the map $m$:
+\begin{equation}
+p(x_{0:t}, m \mid z_{1:t}, u_{1:t})
+\end{equation}
+This joint estimation problem can be decomposed and solved through various mathematical frameworks, broadly categorized as filter-based and graph-based approaches.
+
+\subsection{Filter-Based Approaches}
+
+Early SLAM solutions employed recursive Bayesian filtering. The Extended Kalman Filter (EKF) SLAM algorithm maintains a joint Gaussian distribution over the robot state and landmark positions, updating both with each new observation. While mathematically elegant, EKF-SLAM suffers from quadratic computational complexity in the number of landmarks, limiting its scalability.
+
+Particle filter approaches, such as Rao-Blackwellized particle filters used in GMapping \citep{grisetti2010gmapping}, represent the posterior distribution using a set of weighted particles. Each particle carries a robot trajectory hypothesis and an associated map. Adaptive techniques such as KLD-sampling \citep{fox2003kld} reduce computational cost by adjusting the number of particles based on the complexity of the posterior distribution.
+
+\subsection{Graph-Based Approaches}
+
+Modern SLAM systems predominantly employ graph-based formulations \citep{grisetti2010gmapping, dellaert2017factor}. In this framework, robot poses are represented as nodes in a graph, and spatial constraints between poses---derived from odometry, scan matching, or loop closure detection---are represented as edges. The SLAM problem reduces to a nonlinear least-squares optimization:
+\begin{equation}
+x^* = \arg\min_x \sum_{(i,j) \in \mathcal{E}} \| e_{ij}(x_i, x_j) \|^2_{\Omega_{ij}}
+\end{equation}
+where $e_{ij}$ is the error function for the constraint between poses $x_i$ and $x_j$, and $\Omega_{ij}$ is the information matrix encoding constraint uncertainty. Efficient solvers such as g2o \citep{kummerle2011g2o} and Ceres Solver \citep{agarwal2010ceres} make this optimization tractable for large pose graphs.
+
+\subsection{The 2D LiDAR SLAM Landscape}
+
+Two-dimensional LiDAR sensors provide planar range measurements that are well-suited for indoor and structured environments. The 2D SLAM landscape includes several prominent algorithms: GMapping (particle filter-based), Hector SLAM \citep{kohlbrecher2011hector} (scan matching without odometry), Cartographer \citep{hess2016cartographer} (submap-based with branch-and-bound loop closure), and SLAM Toolbox \citep{macenski2021slam} (pose graph with Ceres optimization). This thesis focuses on the latter two as the most actively maintained and widely deployed solutions in the ROS~2 ecosystem.
+
+\section{SLAM Toolbox}
+
+SLAM Toolbox \citep{macenski2021slam} is an open-source SLAM library designed for production deployment in dynamic, real-world environments. Developed as a successor to the earlier Karto SLAM library, it provides a graph-based SLAM solution with several operational modes.
+
+\subsection{Architecture}
+
+SLAM Toolbox maintains a pose graph where each node represents a robot pose associated with a laser scan. Edges encode spatial constraints derived from scan matching between consecutive poses (sequential constraints) and between non-adjacent poses that observe the same region (loop closure constraints). The pose graph is optimized using the Ceres Solver \citep{agarwal2010ceres}, a widely used nonlinear least-squares optimization library developed by Google.
+
+The system operates in multiple modes: \emph{synchronous} mode processes each incoming scan sequentially, \emph{asynchronous} mode allows scans to be processed at a rate independent of acquisition, and \emph{localization} mode operates on a pre-built map. For real-time SLAM applications, asynchronous mode is typically preferred as it decouples scan processing from the sensor data rate.
+
+\subsection{Scan Matching and Loop Closure}
+
+Local scan matching in SLAM Toolbox uses a correlative scan matcher followed by Ceres-based refinement. When a new scan is acquired, it is first matched against the local submap using correlation, then refined through nonlinear optimization to minimize the point-to-map distance.
+
+Loop closure detection is performed by searching for scan matches against previously visited regions. When a sufficiently strong match is found, a loop closure constraint is added to the pose graph, and the entire graph is re-optimized. This global optimization distributes the accumulated drift across the trajectory, improving global consistency.
+
+\subsection{ROS~2 Integration}
+
+SLAM Toolbox is implemented as a ROS~2 lifecycle node, allowing external management of its state transitions (unconfigured, inactive, active). It subscribes to laser scan and odometry topics, publishes the occupancy grid map, and broadcasts the \texttt{map}$\rightarrow$\texttt{odom} transform that provides localization for downstream navigation systems.
+
+\section{Google Cartographer}
+
+Google Cartographer \citep{hess2016cartographer} is a SLAM system that provides real-time mapping in 2D and 3D. Originally developed at Google for mapping indoor environments, it employs a distinctive two-phase architecture: local SLAM (front-end) and global SLAM (back-end).
+
+\subsection{Local SLAM: Submap Construction}
+
+The local SLAM component constructs \emph{submaps}---local occupancy grid maps built from a fixed number of consecutive laser scans. Each incoming scan is inserted into the current active submap using scan-to-submap matching. The matching process first applies a correlative scan matcher that exhaustively searches a window of possible translations and rotations, then refines the result using a Ceres-based optimization that minimizes the residual between the scan points and the submap probability values.
+
+A motion filter controls the rate of scan insertion by suppressing scans that are too close in time, distance, or rotation to the previous inserted scan. This filtering reduces computational cost and prevents redundant data from degrading submap quality.
+
+\subsection{Global SLAM: Loop Closure and Optimization}
+
+The global SLAM component operates in the background, searching for loop closures between completed submaps. Cartographer uses a \emph{branch-and-bound} algorithm for efficient scan matching over large search windows. This approach hierarchically searches a discretized space of possible alignments, pruning branches that cannot improve upon the current best match, making loop closure detection computationally feasible even for large environments.
+
+When loop closures are detected, they are added as constraints to a pose graph that connects all submaps. The pose graph is periodically optimized using a Ceres-based solver, distributing accumulated drift and improving global map consistency. The frequency of optimization is controlled by the \texttt{optimize\_every\_n\_nodes} parameter.
+
+\subsection{Key Differences from SLAM Toolbox}
+
+While both algorithms employ pose graph optimization with Ceres, they differ in their fundamental approach to map representation. SLAM Toolbox maintains a single continuous pose graph where each node corresponds to an individual robot pose, while Cartographer groups poses into submaps, operating at a coarser granularity for global optimization. This architectural difference affects how each algorithm handles drift accumulation, loop closure, and computational scaling.
+
+\section{The Nav2 Navigation Framework}
+
+Nav2 \citep{macenski2020nav2} is the standard navigation framework for ROS~2, providing a complete solution for autonomous robot navigation. It evolved from the original ROS Navigation Stack with significant architectural improvements including lifecycle-managed nodes, behavior tree-based task orchestration, and pluggable algorithms.
+
+\subsection{Architecture}
+
+Nav2 employs a modular architecture with the following core components:
+
+\begin{itemize}
+\item \textbf{Planner Server}: Computes global paths from the robot's current position to a goal pose using a costmap that incorporates both static map data and dynamic obstacle information. NavfnPlanner, based on Dijkstra's algorithm, is the default global planner.
+
+\item \textbf{Controller Server}: Executes the global path by computing velocity commands that track the planned path while avoiding obstacles. The Dynamic Window Based (DWB) local planner samples candidate velocity trajectories and scores them against multiple critic functions including path alignment, goal distance, and obstacle proximity.
+
+\item \textbf{Behavior Server}: Provides recovery behaviors (spin, backup, wait) that the robot can execute when the planner or controller fails.
+
+\item \textbf{BT Navigator}: Orchestrates the navigation task using behavior trees, which define the logic for planning, following paths, and invoking recovery behaviors.
+
+\item \textbf{Lifecycle Manager}: Manages the startup, shutdown, and state transitions of all Nav2 nodes in a deterministic order.
+\end{itemize}
+
+\subsection{SLAM-in-the-Loop Operation}
+
+In typical deployments, Nav2 uses a pre-built map with Adaptive Monte Carlo Localization (AMCL) for pose estimation. However, Nav2 can also operate with SLAM-in-the-loop, where a running SLAM algorithm provides both the map and the localization. In this mode, the SLAM algorithm publishes the \texttt{map}$\rightarrow$\texttt{odom} transform, and Nav2 uses this transform chain (\texttt{map}$\rightarrow$\texttt{odom}$\rightarrow$\texttt{base\_footprint}) for localization. This configuration eliminates the need for AMCL and directly couples navigation performance to SLAM accuracy.
+
+\section{SLAM Evaluation Methodology}
+
+\subsection{Absolute Trajectory Error}
+
+The Absolute Trajectory Error (ATE) measures the global consistency of a SLAM trajectory by comparing estimated poses against ground truth after alignment \citep{sturm2012benchmark}. Given a ground truth trajectory $\{p_i^{gt}\}$ and an estimated trajectory $\{p_i^{est}\}$, the trajectories are first aligned using the Umeyama method \citep{umeyama1991} to find the rigid transformation $S \in SE(3)$ that minimizes the sum of squared position differences. The ATE at each time step is then:
+\begin{equation}
+\text{ATE}_i = \| p_i^{gt} - S \cdot p_i^{est} \|
+\end{equation}
+The scalar ATE metric is typically reported as the root-mean-square error (RMSE) over all time steps.
+
+\subsection{Relative Pose Error}
+
+The Relative Pose Error (RPE) measures local accuracy by comparing relative transformations between pairs of poses \citep{sturm2012benchmark, zhang2018tutorial}. For a pair of time steps $(i, j)$, the RPE is defined as:
+\begin{equation}
+\text{RPE}_{i,j} = (p_i^{gt})^{-1} \cdot p_j^{gt} \cdot \left( (p_i^{est})^{-1} \cdot p_j^{est} \right)^{-1}
+\end{equation}
+RPE can be computed over fixed time intervals, fixed distances, or consecutive frames. It captures the local drift rate independent of global trajectory alignment.
+
+\subsection{The evo Library}
+
+The \texttt{evo} library \citep{grupp2017evo} provides a standardized implementation of trajectory evaluation metrics. It supports the TUM trajectory format (timestamp, position, quaternion orientation per line), implements Umeyama alignment, and computes ATE and RPE with various statistical summaries (RMSE, mean, median, standard deviation, min, max). Its widespread adoption in the SLAM community ensures comparability of results across studies.
+
+\section{Related Benchmarking Work}
+
+Several benchmarking efforts have established methodologies for SLAM evaluation. The TUM RGB-D benchmark \citep{sturm2012benchmark} introduced the ATE and RPE metrics along with standardized dataset formats that have become the de facto standard for trajectory evaluation. The KITTI benchmark \citep{geiger2013kitti} extended evaluation to outdoor driving scenarios with larger-scale trajectories. More recently, the SLAM Hive benchmarking suite \citep{wisth2024slamhive} proposed cloud-based evaluation at scale, enabling systematic comparison across many algorithm--dataset combinations.
+
+Within the 2D LiDAR SLAM domain, several studies have compared algorithm performance on standard or custom datasets. These comparisons typically employ the record-and-replay paradigm: sensor data is recorded once and replayed to each algorithm, ensuring identical input for fair comparison. While this approach controls for input variability, it evaluates SLAM in isolation from the broader autonomous system.
+
+\section{Research Gap}
+
+The existing body of SLAM benchmarking work shares a common limitation: algorithms are evaluated on their trajectory estimation accuracy without examining how that accuracy affects downstream task performance. This open-loop evaluation paradigm is analogous to evaluating a perception system solely on detection accuracy without testing its impact on planning and control.
+
+In practice, SLAM serves as one component in a larger autonomous system. Localization errors are filtered through path planning, trajectory tracking, and goal checking modules, each of which introduces its own tolerances and error handling. A SLAM algorithm with higher ATE may still provide sufficient localization for successful navigation if its errors remain within the tolerances of the navigation system.
+
+This thesis addresses this gap by evaluating SLAM algorithms through closed-loop autonomous navigation, measuring both trajectory accuracy (for comparison with traditional benchmarks) and navigation task performance (success rate, completion time). This dual evaluation provides a more complete picture of algorithm suitability for deployment in autonomous systems.

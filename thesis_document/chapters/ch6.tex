@@ -1,0 +1,104 @@
+\chapter{Discussion}
+\label{ch:discussion}
+
+This chapter interprets the experimental results in the context of our research questions, analyzes the observed accuracy--utility gap, explores algorithmic explanations for the performance differences, discusses practical implications, and acknowledges limitations.
+
+\section{Answering the Research Questions}
+
+\subsection{RQ1: SLAM Accuracy Comparison}
+
+\emph{How do SLAM Toolbox and Cartographer compare in SLAM accuracy across trajectories of varying complexity?}
+
+The results provide a clear answer: SLAM Toolbox achieves substantially higher trajectory accuracy than Cartographer across all three complexity levels. The ATE RMSE ratio ranges from 11.3$\times$ on the simple trajectory to 6.4$\times$ on the complex trajectory, consistently favoring SLAM Toolbox. In absolute terms, SLAM Toolbox maintains sub-centimeter accuracy on short trajectories (0.96\,cm on the simple goal set) and below 3\,cm even on the longest trajectory (2.84\,cm on the complex goal set with approximately 35\,m of travel).
+
+The RPE analysis reveals that the accuracy gap is primarily in global trajectory consistency (ATE) rather than local pose estimation (RPE). RPE ratios of 1.7--3.0$\times$ are notably smaller than the ATE ratios, indicating that both algorithms achieve reasonable local scan matching accuracy but differ in how effectively they maintain global coherence through loop closure and pose graph optimization.
+
+Both algorithms exhibit approximately linear error growth with trajectory length, which is consistent with the expected behavior of SLAM systems where drift accumulates between loop closure opportunities. SLAM Toolbox's drift rate (approximately 0.08\,cm/m) is roughly four times lower than Cartographer's (approximately 0.32\,cm/m), suggesting more effective continuous drift correction.
+
+\subsection{RQ2: Accuracy and Navigation Success}
+
+\emph{Does SLAM accuracy predict navigation success rate and efficiency?}
+
+The most striking finding of this study is the complete decoupling of SLAM accuracy from navigation success within our experimental conditions. Despite a 6--11$\times$ difference in ATE, both algorithms achieve identical 100\% navigation success rates across all goal sets and all repetitions. Navigation mission times are also nearly identical, differing by less than 7\% between algorithms.
+
+This result has a straightforward explanation: the Nav2 goal checker uses an XY tolerance of 0.25\,m (25\,cm) to determine whether a goal has been reached. Cartographer's worst-case ATE of approximately 18\,cm remains well within this tolerance. More importantly, the DWB local controller continuously replans based on the current pose estimate, effectively compensating for global drift as long as the robot remains within the costmap and the local scan matching provides sufficient accuracy for path following.
+
+This finding does not imply that SLAM accuracy is irrelevant---rather, it demonstrates that for navigation tasks in bounded indoor environments with the default Nav2 tolerances, even the less accurate algorithm provides sufficient localization. The accuracy difference would likely become task-relevant in scenarios requiring tighter positioning tolerances, such as precision docking, manipulation, or multi-robot coordination.
+
+\subsection{RQ3: Scaling with Complexity}
+
+\emph{How do the algorithms scale as trajectory length and complexity increase?}
+
+Both algorithms show degradation with increasing trajectory complexity, but with different characteristics. SLAM Toolbox's ATE grows from 0.96\,cm to 2.84\,cm (a 3.0$\times$ increase) as the path length increases from approximately 12\,m to 35\,m (a 2.9$\times$ increase), showing nearly linear scaling. Cartographer's ATE grows from 10.82\,cm to 18.09\,cm (a 1.7$\times$ increase), showing sub-linear scaling relative to path length.
+
+Interestingly, the accuracy \emph{ratio} between algorithms decreases with complexity (11.3$\times$ $\rightarrow$ 8.1$\times$ $\rightarrow$ 6.4$\times$). This convergence could be attributed to Cartographer's loop closure mechanism becoming more effective on longer trajectories where the robot revisits more areas, or to SLAM Toolbox's error growth rate eventually catching up at larger scales.
+
+Run-to-run variability also increases with trajectory complexity for both algorithms, with Cartographer showing higher variance. This is consistent with the stochastic nature of loop closure detection and the increased number of decisions the algorithms must make on longer trajectories.
+
+\section{The Accuracy--Utility Gap}
+
+The central finding of this thesis---that a substantial SLAM accuracy difference produces no measurable navigation performance difference---warrants deeper analysis. We term this the \emph{accuracy--utility gap}: the disparity between what accuracy benchmarks measure and what task performance requires.
+
+Traditional SLAM benchmarks such as TUM RGB-D \citep{sturm2012benchmark} and KITTI \citep{geiger2013kitti} evaluate trajectory accuracy because it is a well-defined, sensor-agnostic metric that captures the fundamental quality of the SLAM solution. However, accuracy is a \emph{proxy metric} for the actual goal of enabling robot autonomy. Our results demonstrate that this proxy can be misleading when comparing algorithms for deployment: an algorithm with 11$\times$ worse accuracy may perform identically on the actual task.
+
+This finding has several implications for the SLAM evaluation community:
+
+\begin{enumerate}
+\item \textbf{Accuracy thresholds matter more than accuracy values.} Rather than comparing ATE values directly, practitioners should identify the accuracy threshold required by their application and verify that candidate algorithms meet it. For Nav2-based navigation with default tolerances, an ATE below approximately 25\,cm appears sufficient.
+
+\item \textbf{Task-driven evaluation provides complementary information.} ATE and RPE remain valuable for understanding algorithm capabilities, but should be supplemented with task-level metrics when the goal is algorithm selection for deployment.
+
+\item \textbf{System-level factors may dominate.} The navigation stack's ability to compensate for SLAM errors through replanning, local control, and goal tolerance means that system-level design choices (tolerance settings, controller tuning, recovery behaviors) may have more impact on task success than the choice of SLAM algorithm.
+\end{enumerate}
+
+\section{Algorithmic Analysis}
+
+Several factors may explain SLAM Toolbox's consistent accuracy advantage:
+
+\textbf{Continuous pose graph optimization.} SLAM Toolbox maintains and optimizes a single pose graph throughout the mapping session, with each scan insertion potentially triggering local optimization. Cartographer, by contrast, groups scans into submaps and optimizes at a coarser granularity (every 90 nodes in our configuration). This difference in optimization frequency may allow SLAM Toolbox to correct drift more promptly.
+
+\textbf{Default parameter suitability.} The published default parameters for each algorithm were designed for different reference platforms. SLAM Toolbox was developed within the ROS~2 ecosystem specifically for mobile robot applications, while Cartographer originated at Google for large-scale indoor mapping with different sensor configurations. The default parameters may favor the smaller, slower rover platform used in our experiments.
+
+\textbf{Scan matching strategy.} SLAM Toolbox uses correlative scan matching followed by Ceres refinement against a continuously updated map, while Cartographer matches scans against local submaps with a separate correlative pre-matching step. The continuous map approach may provide richer context for scan matching, reducing per-scan drift.
+
+We emphasize that these are hypotheses based on the algorithmic descriptions and observed behavior. A definitive explanation would require controlled ablation studies isolating individual algorithm components, which is beyond the scope of this thesis.
+
+\section{Practical Implications}
+
+Based on our findings, we offer the following guidance for practitioners selecting between SLAM Toolbox and Cartographer for 2D LiDAR applications:
+
+\begin{itemize}
+\item For \textbf{standard navigation tasks} in indoor environments where goal tolerances are on the order of tens of centimeters, either algorithm is suitable. The choice may then be driven by non-accuracy factors such as computational resource availability, API familiarity, and community support.
+
+\item For \textbf{accuracy-critical applications} such as precision docking, fleet management requiring consistent global coordinates, or mapping for subsequent localization, SLAM Toolbox's superior ATE makes it the preferred choice under default configurations.
+
+\item For applications where \textbf{parameter tuning is feasible}, the accuracy gap may narrow significantly. Prior work on this project demonstrated that Optuna-based hyperparameter optimization reduced Cartographer's ATE from approximately 10\,cm to below 1\,cm on short trajectories, suggesting that Cartographer's potential is constrained by its default parameters rather than fundamental algorithmic limitations.
+\end{itemize}
+
+\section{Limitations}
+
+This study has several limitations that should be considered when interpreting the results:
+
+\begin{enumerate}
+\item \textbf{Simulation-only evaluation.} All experiments were conducted in the Gazebo simulator, which provides idealized sensor data without the noise, calibration errors, and environmental variability encountered in real-world deployments. The absence of sensor noise likely benefits both algorithms but may disproportionately affect the relative comparison.
+
+\item \textbf{Single environment.} Experiments used a single 10$\times$10\,m room environment. Different environment types (long corridors, open areas, symmetric rooms) may expose different algorithm behaviors, particularly regarding loop closure performance and scan matching degeneracy.
+
+\item \textbf{Default parameters.} Both algorithms were evaluated with published default parameters. Algorithm-specific tuning could significantly alter the relative performance, as demonstrated by preliminary Optuna experiments on this project.
+
+\item \textbf{Single navigation configuration.} Only one Nav2 configuration (NavfnPlanner + DWB controller) was tested. Different planners or controllers may interact differently with SLAM accuracy variations.
+
+\item \textbf{Limited repetitions.} Three repetitions per configuration provide a measure of variability but limit statistical power for formal hypothesis testing. A larger sample size would strengthen the conclusions.
+
+\item \textbf{No sensor degradation.} The simulator provides perfect odometry and noise-free laser scans. Real deployments contend with wheel slip, encoder noise, and LiDAR artifacts that may differentially affect the two algorithms.
+
+\item \textbf{2D LiDAR only.} The comparison is limited to 2D LiDAR SLAM. Both algorithms support additional sensor modalities (3D LiDAR, IMU) that were not evaluated.
+\end{enumerate}
+
+\section{Threats to Validity}
+
+\textbf{Internal validity.} The use of simulation ensures consistent experimental conditions across runs. However, the simulation's physics engine introduces its own approximations that may not perfectly represent real robot behavior. The automated process cleanup between runs mitigates the risk of state leakage between experiments.
+
+\textbf{External validity.} Results obtained in simulation with a specific robot model, sensor configuration, and environment may not generalize to other platforms, environments, or real-world conditions. The single-environment design limits the breadth of conclusions about algorithm behavior across diverse scenarios.
+
+\textbf{Construct validity.} ATE RMSE is an established metric for SLAM trajectory accuracy, but it is a single-number summary that may not capture all aspects of SLAM quality (e.g., map accuracy, consistency of loop closures, computational efficiency). Navigation success rate is a coarse binary metric that may not capture subtle differences in navigation quality such as path smoothness or recovery frequency.

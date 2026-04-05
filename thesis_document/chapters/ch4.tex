@@ -1,0 +1,107 @@
+\chapter{Implementation}
+\label{ch:implementation}
+
+This chapter details the software implementation of the experimental framework, including the system architecture, ROS~2 package structure, transform frame design, experiment orchestration, and key technical challenges.
+
+\section{System Architecture}
+
+The experimental system comprises four major subsystems operating concurrently during each experiment, as illustrated conceptually in Figure~\ref{fig:system_arch}. The \emph{simulation subsystem} (Gazebo Harmonic) simulates the physical world, robot dynamics, and sensor data. The \emph{SLAM subsystem} (either SLAM Toolbox or Cartographer) processes laser scans and odometry to produce a map and localization estimate. The \emph{navigation subsystem} (Nav2) uses the SLAM-provided localization to plan and execute paths toward goal poses. The \emph{evaluation subsystem} records trajectories and computes accuracy metrics.
+
+Data flows in a closed loop: Gazebo produces simulated sensor data (laser scans, odometry, clock), which the SLAM algorithm processes to publish a map and the \texttt{map}$\rightarrow$\texttt{odom} transform. Nav2 uses this transform for localization, computes velocity commands, which are sent back to Gazebo to actuate the robot. The ground truth publisher operates in parallel, extracting the true robot pose from Gazebo and publishing it on a separate transform tree for post-hoc evaluation.
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.9\textwidth}{
+\centering
+\textbf{System Architecture}\\[6pt]
+\small
+Gazebo Harmonic $\xrightarrow{\texttt{/scan, /odom, /clock}}$ SLAM Algorithm $\xrightarrow{\texttt{map}\rightarrow\texttt{odom}~\text{TF}}$ Nav2 Stack $\xrightarrow{\texttt{/cmd\_vel}}$ Gazebo\\[4pt]
+Gazebo $\xrightarrow{\texttt{/model/rover/pose}}$ GT Publisher $\xrightarrow{\texttt{map\_gt}\rightarrow\texttt{base\_footprint\_gt}~\text{TF}}$ Trajectory Exporter $\rightarrow$ \texttt{gt.tum}\\[4pt]
+SLAM TF Tree $\rightarrow$ Trajectory Exporter $\rightarrow$ \texttt{est.tum} $\rightarrow$ \texttt{evo} $\rightarrow$ \texttt{metrics.json}
+}}
+\caption{System architecture showing the closed-loop data flow between simulation, SLAM, navigation, and evaluation subsystems.}
+\label{fig:system_arch}
+\end{figure}
+
+\section{ROS~2 Package Structure}
+
+The experimental framework is organized into seven custom ROS~2 packages within a single workspace, each with a focused responsibility:
+
+\begin{description}
+\item[\texttt{rover\_description}] Contains the robot's URDF/Xacro model defining the physical geometry, inertial properties, collision shapes, sensor attachments, and Gazebo plugin configurations (differential drive, LiDAR). Provides the static transforms in the kinematic chain from \texttt{base\_footprint} through \texttt{base\_link} to \texttt{laser\_frame}.
+
+\item[\texttt{rover\_sim}] Provides the Gazebo world files (SDF format) and the simulation launch file that starts Gazebo, spawns the robot model, and configures the \texttt{ros\_gz\_bridge} for topic bridging between Gazebo's internal transport and ROS~2.
+
+\item[\texttt{gt\_publisher}] Implements the ground truth publisher node that subscribes to the Gazebo model pose topic and republishes it as both an Odometry message and a TF broadcast on the dedicated ground truth frame tree.
+
+\item[\texttt{slam\_launch}] Contains configuration files for both SLAM algorithms (SLAM Toolbox YAML, Cartographer Lua) and their respective launch files.
+
+\item[\texttt{traj\_exporter}] Provides a configurable trajectory exporter node that samples TF transforms at a specified rate and writes them to TUM-format trajectory files. The node accepts parameters for parent frame, child frame, output file path, and sampling rate.
+
+\item[\texttt{experiment\_runner}] Contains the experiment orchestration scripts (\texttt{run\_nav\_experiment.py}, \texttt{run\_batch.py}), the evaluation script (\texttt{evaluate\_run.py}), the plot generation script (\texttt{generate\_plots.py}), and the navigation goal set definitions (YAML files).
+
+\item[\texttt{nav\_launch}] Provides the Nav2 integration, including the SLAM-in-the-loop launch file (\texttt{nav2\_slam.launch.py}) and the Nav2 parameter configuration file (\texttt{nav2\_slam\_params.yaml}).
+\end{description}
+
+\section{TF Frame Architecture}
+
+The transform (TF) frame architecture is a critical design element that required careful attention to avoid conflicts between the SLAM and ground truth coordinate systems. ROS~2's TF2 library enforces a tree structure where each frame has exactly one parent. The final frame architecture consists of two disjoint trees:
+
+\textbf{SLAM Tree (runtime localization):}
+\begin{verbatim}
+map -> odom -> base_footprint -> base_link -> laser_frame
+\end{verbatim}
+
+\textbf{Ground Truth Tree (evaluation only):}
+\begin{verbatim}
+map_gt -> base_footprint_gt
+\end{verbatim}
+
+The SLAM tree is the standard ROS navigation frame convention: the SLAM algorithm publishes \texttt{map}$\rightarrow$\texttt{odom} (correcting for odometry drift), the Gazebo differential drive plugin publishes \texttt{odom}$\rightarrow$\texttt{base\_footprint} (raw odometry), and the robot state publisher provides the static transforms from \texttt{base\_footprint} through \texttt{base\_link} to \texttt{laser\_frame}.
+
+The ground truth tree uses unique frame names (\texttt{map\_gt} and \texttt{base\_footprint\_gt}) that do not appear anywhere in the SLAM tree. This design was adopted after discovering that publishing ground truth to the existing \texttt{base\_link} frame created a two-parent conflict: both \texttt{base\_footprint} (from the URDF) and \texttt{map\_gt} (from the ground truth publisher) claimed parentage of \texttt{base\_link}, resulting in a disconnected TF tree and lookup failures throughout the system.
+
+\section{Experiment Orchestration}
+
+The \texttt{run\_nav\_experiment.py} script orchestrates a single experiment through the following phases:
+
+\begin{enumerate}
+\item \textbf{Launch}: Start the Nav2 SLAM launch file as a subprocess, which brings up Gazebo, the robot, SLAM, ground truth publisher, and the full Nav2 stack.
+\item \textbf{Initialize}: Wait 25 seconds for all nodes to start, the SLAM algorithm to process initial scans, and the Nav2 lifecycle manager to activate all navigation nodes.
+\item \textbf{Record}: Start two trajectory exporter processes---one for ground truth (\texttt{map\_gt}$\rightarrow$\texttt{base\_footprint\_gt}) and one for the SLAM estimate (\texttt{map}$\rightarrow$\texttt{base\_footprint}).
+\item \textbf{Execute}: Initialize a ROS~2 action client and send NavigateToPose goals sequentially. For each goal, record the acceptance status, elapsed time, and completion result. A configurable timeout per goal (120--180 seconds depending on goal set complexity) prevents indefinite blocking.
+\item \textbf{Evaluate}: After all goals complete, stop the trajectory exporters and invoke the \texttt{evaluate\_run.py} script, which uses the \texttt{evo} library to compute ATE and RPE from the recorded TUM trajectory files and generate visualization plots.
+\item \textbf{Save}: Aggregate navigation metrics and SLAM accuracy metrics into a single \texttt{nav\_results.json} file in the experiment output directory.
+\item \textbf{Cleanup}: Terminate all launched processes via signal handling (SIGINT followed by SIGTERM if necessary).
+\end{enumerate}
+
+\section{Batch Runner}
+
+The \texttt{run\_batch.py} script automates the execution of the full experimental matrix. It iterates over all combinations of algorithm, goal set, and repetition number, invoking \texttt{run\_nav\_experiment.py} for each configuration. Key features include:
+
+\begin{itemize}
+\item \textbf{Process cleanup}: Between each experiment, all ROS and Gazebo processes are explicitly terminated using pattern-matching process kills, with a 3-second settling period to ensure clean state.
+\item \textbf{Progress tracking}: A JSON progress file (\texttt{batch\_progress.json}) is updated after each experiment, recording success status, elapsed time, and extracted metrics.
+\item \textbf{Resume support}: If the batch is interrupted, it can be restarted with the \texttt{-{}-resume} flag to skip already-completed experiments.
+\item \textbf{Progress reporting}: Running statistics (completion count, elapsed time, estimated time remaining) are printed after each experiment.
+\end{itemize}
+
+\section{Key Technical Challenges}
+
+Several non-trivial technical challenges were encountered and resolved during implementation.
+
+\subsection{TF Tree Conflict Resolution}
+
+The most significant challenge was the TF frame conflict described in Section~4.3. The initial implementation broadcast ground truth as \texttt{map\_gt}$\rightarrow$\texttt{base\_link}, which created a two-parent violation since \texttt{base\_link} already had \texttt{base\_footprint} as its parent (from the URDF static transforms). The resolution---using dedicated frame names \texttt{map\_gt}$\rightarrow$\texttt{base\_footprint\_gt}---required changes to the ground truth publisher, all trajectory exporter invocations, and the evaluation pipeline.
+
+\subsection{SLAM Lifecycle Node Ordering}
+
+The Nav2 lifecycle manager activates nodes in the order specified in its configuration. Initially, SLAM Toolbox was listed last, causing the planner server to timeout waiting for the \texttt{map}$\rightarrow$\texttt{odom} transform during its activation. The solution was to place SLAM Toolbox first in the lifecycle manager's node list. Cartographer, which is not a lifecycle node, required a separate lifecycle manager configuration that omits the SLAM entry entirely. This was implemented using conditional launch logic based on the algorithm parameter.
+
+\subsection{Behavior Tree Configuration}
+
+The Nav2 BT Navigator requires explicit paths to behavior tree XML files. The initial configuration used empty strings for these paths, causing a runtime ``Empty Tree'' exception when navigation goals were sent. The resolution involved setting the paths to the default Nav2 behavior trees that include replanning and recovery behaviors.
+
+\subsection{Trajectory Exporter Robustness}
+
+The trajectory exporter node initially crashed with a \texttt{ConnectivityException} when the SLAM algorithm had not yet published its first transform. This occurred because the exporter started before SLAM completed its initialization. The fix involved catching \texttt{ConnectivityException} in addition to the already-handled \texttt{LookupException} and \texttt{ExtrapolationException}, allowing the exporter to gracefully retry until the transform becomes available.

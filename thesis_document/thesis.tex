@@ -1,0 +1,109 @@
+\documentclass[12pt,letterpaper]{report}
+
+% Packages
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[hidelinks]{hyperref}
+\usepackage[round]{natbib}
+\usepackage{setspace}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{appendix}
+
+% Double spacing for thesis
+\doublespacing
+
+% Code listing style
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!5},
+  keywordstyle=\color{blue},
+  commentstyle=\color{green!50!black},
+}
+
+% Figure path
+\graphicspath{{figures/}}
+
+% ============================================================
+% TITLE PAGE
+% ============================================================
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+
+{\LARGE \textbf{Navigation-Driven Evaluation of 2D LiDAR SLAM:\\
+A Comparative Study of SLAM Toolbox and Cartographer\\
+in Autonomous Rover Missions}}
+
+\vspace{2cm}
+
+{\large A Thesis Submitted in Partial Fulfillment\\
+of the Requirements for the Degree of\\
+\textbf{Master of Science}}
+
+\vspace{2cm}
+
+{\large by\\
+\textbf{Zamin Anwar}}
+
+\vspace{3cm}
+
+{\large \the\year}
+
+\vfill
+\end{titlepage}
+
+% ============================================================
+% ABSTRACT
+% ============================================================
+\begin{abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+Simultaneous Localization and Mapping (SLAM) is a foundational capability for autonomous mobile robots, yet selecting between available algorithms remains challenging for practitioners. Traditional SLAM benchmarks evaluate trajectory accuracy in isolation, without examining how accuracy differences affect downstream task performance. This thesis presents a navigation-driven evaluation framework that compares two widely deployed 2D LiDAR SLAM algorithms---SLAM Toolbox and Google Cartographer---through the lens of autonomous navigation using the Nav2 framework on a simulated differential-drive rover.
+
+We developed a reproducible experimental platform using Gazebo Harmonic and ROS~2 Jazzy that integrates SLAM-in-the-loop with Nav2 for closed-loop autonomous navigation. Ground truth is obtained directly from the simulator through a dedicated transform tree that avoids interference with the SLAM coordinate frames. Three navigation goal sets of increasing complexity were designed to test algorithm performance across varying trajectory lengths (12--35\,m) and turning demands.
+
+Experiments comprising 18~runs (2~algorithms $\times$ 3~goal sets $\times$ 3~repetitions) reveal that both algorithms achieve 100\% navigation success across all conditions. However, SLAM Toolbox demonstrates 6--11$\times$ lower Absolute Trajectory Error (ATE), with mean RMSE values of 0.96--2.84\,cm compared to Cartographer's 10.82--18.09\,cm. Relative Pose Error differences are smaller (1.7--3$\times$), indicating the accuracy gap is primarily in global consistency rather than local scan matching. Notably, the substantial accuracy difference produces no measurable difference in navigation success or mission completion time.
+
+These findings suggest that current SLAM accuracy benchmarks may overemphasize trajectory precision beyond task-relevant thresholds, and that navigation-driven evaluation offers a complementary perspective for algorithm selection. The complete experimental framework is released as open-source software.
+
+\end{abstract}
+
+% ============================================================
+% FRONT MATTER
+% ============================================================
+\tableofcontents
+\listoffigures
+\listoftables
+
+% ============================================================
+% CHAPTERS
+% ============================================================
+\input{chapters/ch1}
+\input{chapters/ch2}
+\input{chapters/ch3}
+\input{chapters/ch4}
+\input{chapters/ch5}
+\input{chapters/ch6}
+\input{chapters/ch7}
+
+% ============================================================
+% BIBLIOGRAPHY
+% ============================================================
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

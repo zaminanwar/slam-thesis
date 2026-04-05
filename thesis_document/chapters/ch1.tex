@@ -1,0 +1,55 @@
+\chapter{Introduction}
+\label{ch:introduction}
+
+\section{Motivation}
+
+Autonomous mobile robots are increasingly deployed in warehouses, hospitals, agricultural fields, and urban environments. A fundamental requirement for any mobile robot operating without external positioning infrastructure is the ability to simultaneously determine its own location and construct a representation of its surroundings---a problem known as Simultaneous Localization and Mapping (SLAM) \citep{thrun2005probabilistic}. Over the past two decades, the SLAM problem has received extensive attention from the robotics research community, resulting in a rich ecosystem of algorithms spanning different sensor modalities, mathematical formulations, and computational trade-offs \citep{grisetti2010gmapping, dellaert2017factor}.
+
+For 2D LiDAR-equipped ground robots---a common configuration in indoor service robotics, warehouse automation, and research platforms---two algorithms have emerged as particularly prominent open-source solutions within the Robot Operating System (ROS) ecosystem: SLAM Toolbox \citep{macenski2021slam} and Google Cartographer \citep{hess2016cartographer}. Both are actively maintained, widely deployed, and represent different architectural approaches to the same problem. SLAM Toolbox employs a continuous pose graph with Ceres-based optimization, while Cartographer uses a submap-based approach with branch-and-bound loop closure detection. Despite their popularity, practitioners frequently face difficulty choosing between them, as the relative merits depend heavily on the deployment context.
+
+Traditional SLAM evaluation methodologies, established by influential benchmarks such as the TUM RGB-D dataset \citep{sturm2012benchmark} and the KITTI odometry benchmark \citep{geiger2013kitti}, focus on trajectory accuracy metrics---primarily Absolute Trajectory Error (ATE) and Relative Pose Error (RPE). These metrics provide a rigorous quantitative assessment of localization quality but are computed in an open-loop fashion: the SLAM algorithm processes pre-recorded sensor data, and its estimated trajectory is compared against ground truth. This evaluation paradigm, while valuable, does not capture how localization errors propagate through a complete autonomous system. In practice, SLAM provides localization for a navigation stack that plans paths, avoids obstacles, and controls the robot in a closed feedback loop. The question of whether a measurable difference in SLAM trajectory accuracy translates to a meaningful difference in navigation performance remains largely unexamined.
+
+The emergence of Nav2 \citep{macenski2020nav2} as the standard navigation framework for ROS~2 provides an opportunity to bridge this gap. Nav2 offers a modular, production-quality navigation stack that integrates global and local planning, obstacle avoidance, and recovery behaviors. By operating Nav2 with SLAM-in-the-loop---where the SLAM algorithm provides real-time localization to the navigation stack---we can evaluate SLAM algorithms not only on their trajectory accuracy but also on their impact on task-level performance.
+
+\section{Problem Statement}
+
+This thesis addresses the following overarching question: \emph{How do 2D LiDAR SLAM algorithms compare when evaluated through the lens of autonomous navigation task performance, rather than trajectory accuracy alone?}
+
+Specifically, we investigate whether the accuracy differences observed between SLAM Toolbox and Cartographer in traditional benchmarks translate to meaningful differences in closed-loop navigation outcomes. We conduct this investigation in a simulation environment using Gazebo Harmonic with ROS~2 Jazzy, where ground truth is available from the simulator and experimental conditions can be precisely controlled and repeated.
+
+\section{Research Questions}
+
+This thesis seeks to answer the following research questions:
+
+\begin{description}[style=nextline]
+\item[RQ1:] How do SLAM Toolbox and Cartographer compare in SLAM accuracy (ATE and RPE) across navigation trajectories of varying complexity?
+\item[RQ2:] Does SLAM accuracy predict autonomous navigation success rate and mission efficiency in closed-loop Nav2 missions?
+\item[RQ3:] How do the two algorithms scale in accuracy and performance as trajectory length and navigational complexity increase?
+\end{description}
+
+\section{Contributions}
+
+This thesis makes the following contributions:
+
+\begin{enumerate}
+\item \textbf{A reproducible SLAM-in-the-loop navigation evaluation framework.} We develop an open-source experimental platform that integrates Gazebo Harmonic simulation, ROS~2 Jazzy, and the Nav2 navigation stack to evaluate SLAM algorithms through autonomous navigation task performance. The framework includes automated experiment orchestration, ground truth collection through a dedicated transform tree, and standardized metric computation.
+
+\item \textbf{A quantitative comparison across three complexity levels with statistical validation.} We present experimental results from 18 trials (2 algorithms $\times$ 3 goal sets $\times$ 3 repetitions) comparing SLAM Toolbox and Cartographer on trajectory accuracy (ATE, RPE), navigation success rate, and mission completion time. Results are reported with mean and standard deviation to support statistical interpretation.
+
+\item \textbf{An analysis of the accuracy--utility gap in SLAM-based navigation.} We provide empirical evidence that a 6--11$\times$ difference in SLAM trajectory accuracy produces no measurable difference in navigation success rate or mission time within our experimental conditions, suggesting that traditional accuracy benchmarks may overemphasize precision beyond task-relevant thresholds.
+
+\item \textbf{Open-source software.} The complete experimental framework, including robot model, simulation environment, SLAM configurations, navigation integration, experiment orchestration scripts, and analysis tools, is released as open-source software to facilitate reproduction and extension.
+\end{enumerate}
+
+\section{Thesis Structure}
+
+The remainder of this thesis is organized as follows:
+
+\begin{description}[style=nextline]
+\item[Chapter~\ref{ch:background}] provides background on SLAM fundamentals, the two algorithms under study, the Nav2 navigation framework, and established evaluation methodology. It also reviews related benchmarking work and identifies the research gap addressed by this thesis.
+\item[Chapter~\ref{ch:methodology}] describes the experimental methodology, including the simulation platform, robot model, SLAM and navigation configurations, experimental design with three goal sets of increasing complexity, and the evaluation metrics employed.
+\item[Chapter~\ref{ch:implementation}] details the software implementation, covering the ROS~2 package architecture, transform frame design, experiment orchestration pipeline, and key technical challenges encountered and resolved.
+\item[Chapter~\ref{ch:results}] presents the experimental results across all 18 trials, including navigation success rates, SLAM accuracy metrics, mission timing, scaling behavior, and run-to-run consistency.
+\item[Chapter~\ref{ch:discussion}] interprets the results in the context of the research questions, analyzes the accuracy--utility gap, discusses algorithmic explanations for the observed differences, and acknowledges limitations.
+\item[Chapter~\ref{ch:conclusion}] summarizes the contributions and findings, and outlines directions for future work.
+\end{description}

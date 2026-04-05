@@ -1,0 +1,48 @@
+\chapter{Conclusion and Future Work}
+\label{ch:conclusion}
+
+\section{Summary of Contributions}
+
+This thesis presented a navigation-driven evaluation of two prominent 2D LiDAR SLAM algorithms---SLAM Toolbox and Google Cartographer---assessed through closed-loop autonomous navigation using the Nav2 framework. The work makes the following contributions:
+
+\begin{enumerate}
+\item \textbf{A reproducible SLAM-in-the-loop evaluation framework.} We developed an open-source experimental platform integrating Gazebo Harmonic, ROS~2 Jazzy, and Nav2 that evaluates SLAM algorithms through autonomous navigation task performance. The framework includes automated experiment orchestration with batch execution, ground truth collection through a dedicated transform tree, standardized metric computation via the \texttt{evo} library, and result aggregation with visualization generation.
+
+\item \textbf{A quantitative comparison with statistical validation.} Through 18 controlled experiments across three complexity levels with three repetitions each, we provided a statistically characterized comparison of SLAM Toolbox and Cartographer on both trajectory accuracy (ATE, RPE) and navigation performance (success rate, mission time).
+
+\item \textbf{Empirical evidence of the accuracy--utility gap.} We demonstrated that a 6--11$\times$ difference in SLAM trajectory accuracy produces no measurable difference in navigation success or mission time within a bounded indoor environment. This finding challenges the assumption that higher SLAM accuracy directly translates to better autonomous system performance and suggests that task-driven evaluation provides important complementary information to trajectory accuracy metrics.
+
+\item \textbf{Open-source software.} The complete experimental framework---including robot model, simulation environment, SLAM configurations, Nav2 integration, experiment orchestration, and analysis tools---is publicly available to support reproduction and extension of this work.
+\end{enumerate}
+
+\section{Key Findings}
+
+The experimental investigation yielded four principal findings:
+
+\textbf{Finding 1: SLAM Toolbox achieves consistently superior trajectory accuracy.} Across all three goal sets and nine repetitions per algorithm, SLAM Toolbox produced ATE RMSE values of 0.96--2.84\,cm compared to Cartographer's 10.82--18.09\,cm. The accuracy advantage is primarily in global consistency (ATE) rather than local accuracy (RPE), with RPE ratios of 1.7--3.0$\times$ compared to ATE ratios of 6.4--11.3$\times$.
+
+\textbf{Finding 2: Navigation success is independent of SLAM accuracy in this context.} Both algorithms achieved 100\% navigation success across all 18 experiments, with nearly identical mission completion times. The Nav2 navigation stack effectively compensates for SLAM localization errors through continuous replanning and the 25\,cm goal tolerance.
+
+\textbf{Finding 3: Both algorithms scale approximately linearly with trajectory length.} Error accumulation follows a roughly linear pattern for both algorithms, with SLAM Toolbox exhibiting a drift rate of approximately 0.08\,cm/m compared to Cartographer's 0.32\,cm/m. The accuracy gap narrows with increasing complexity, from 11.3$\times$ to 6.4$\times$.
+
+\textbf{Finding 4: SLAM accuracy benchmarks provide incomplete deployment guidance.} The complete decoupling of trajectory accuracy from task performance in our experiments suggests that ATE comparisons alone may be insufficient for algorithm selection. Practitioners should evaluate candidate algorithms against their specific task requirements, including tolerance thresholds, environmental conditions, and computational constraints.
+
+\section{Future Work}
+
+Several directions for future research emerge from this work:
+
+\textbf{Real hardware validation.} The most important extension is validating these simulation findings on physical robot hardware. Real-world experiments would introduce sensor noise, wheel slip, calibration errors, and environmental variability that may differentially affect the two algorithms. Even a limited set of real-world runs would substantially strengthen the conclusions.
+
+\textbf{Degraded operating conditions.} Introducing controlled degradation---such as odometry noise injection, reduced LiDAR range, or sensor dropout---would test algorithm robustness and may reveal conditions under which the accuracy gap becomes navigation-relevant. The existing codebase includes infrastructure for odometry noise injection that could be activated for this purpose.
+
+\textbf{Diverse environments.} Testing in environments that stress different SLAM capabilities---long featureless corridors (testing scan matching degeneracy), symmetric rooms (testing perceptual aliasing), and cluttered spaces (testing feature richness)---would provide a more comprehensive comparison.
+
+\textbf{Parameter tuning study.} A systematic investigation of parameter sensitivity using automated tuning (e.g., Optuna-based optimization) would clarify whether the observed accuracy gap is fundamental to the algorithmic approaches or an artifact of default parameter settings.
+
+\textbf{Alternative navigation configurations.} Evaluating with different Nav2 components---such as the MPPI controller, Regulated Pure Pursuit controller, or SmacPlanner---and varying goal tolerances would test the generality of the accuracy--utility gap finding.
+
+\textbf{Longer trajectories and extended operation.} Testing with substantially longer trajectories (hundreds of meters) and extended operation times would reveal whether the observed linear drift scaling continues or whether either algorithm exhibits non-linear degradation at larger scales.
+
+\textbf{Computational profiling.} A systematic comparison of CPU and memory utilization during SLAM and navigation would add an important practical dimension to the algorithm comparison, as computational efficiency directly affects deployability on resource-constrained robot platforms.
+
+\textbf{Map quality evaluation.} Extending the evaluation to include map quality metrics---such as occupancy grid accuracy, structural consistency, and usability for subsequent localization---would provide a more complete picture of SLAM output quality beyond trajectory accuracy.
