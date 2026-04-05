@@ -1,0 +1,59 @@
+# Navigation goals for complex figure-8 with backtracking
+# Tests long-range SLAM drift, loop closure, and repeated area visits
+# 11 waypoints covering ~35m total path length
+
+goals:
+  - x: 3.5
+    y: 0.0
+    yaw: 0.0
+    name: 'wp_01_east'
+
+  - x: 4.0
+    y: 3.5
+    yaw: 1.57
+    name: 'wp_02_ne_corner'
+
+  - x: 0.0
+    y: 4.0
+    yaw: 3.14
+    name: 'wp_03_north'
+
+  - x: -3.5
+    y: 3.5
+    yaw: 3.14
+    name: 'wp_04_nw_corner'
+
+  - x: -4.0
+    y: 0.0
+    yaw: -1.57
+    name: 'wp_05_west'
+
+  - x: -3.5
+    y: -3.5
+    yaw: -1.57
+    name: 'wp_06_sw_corner'
+
+  - x: 0.0
+    y: -4.0
+    yaw: 0.0
+    name: 'wp_07_south'
+
+  - x: 3.5
+    y: -3.5
+    yaw: 1.57
+    name: 'wp_08_se_corner'
+
+  - x: 2.0
+    y: 0.0
+    yaw: 3.14
+    name: 'wp_09_center_east_revisit'
+
+  - x: -2.0
+    y: 0.0
+    yaw: 0.0
+    name: 'wp_10_center_west_revisit'
+
+  - x: 0.0
+    y: 0.0
+    yaw: 0.0
+    name: 'wp_11_origin_return'

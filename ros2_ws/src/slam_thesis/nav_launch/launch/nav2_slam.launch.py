@@ -213,7 +213,7 @@ def generate_launch_description():
                 ],
             ),
 
-            # Lifecycle Manager
+            # Lifecycle Manager (slam_toolbox variant - includes slam_toolbox in node list)
             Node(
                 package='nav2_lifecycle_manager',
                 executable='lifecycle_manager',
@@ -233,6 +233,32 @@ def generate_launch_description():
                     ],
                     'bond_timeout': 0.0,  # Disable bond for easier debugging
                 }],
+                condition=IfCondition(
+                    PythonExpression(["'", LaunchConfiguration('algorithm'), "' == 'slam_toolbox'"])
+                ),
+            ),
+            # Lifecycle Manager (cartographer variant - cartographer is not a lifecycle node)
+            Node(
+                package='nav2_lifecycle_manager',
+                executable='lifecycle_manager',
+                name='lifecycle_manager_navigation',
+                output='screen',
+                parameters=[{
+                    'use_sim_time': LaunchConfiguration('use_sim_time'),
+                    'autostart': LaunchConfiguration('autostart'),
+                    'node_names': [
+                        'controller_server',
+                        'planner_server',
+                        'behavior_server',
+                        'bt_navigator',
+                        'waypoint_follower',
+                        'velocity_smoother',
+                    ],
+                    'bond_timeout': 0.0,  # Disable bond for easier debugging
+                }],
+                condition=IfCondition(
+                    PythonExpression(["'", LaunchConfiguration('algorithm'), "' == 'cartographer'"])
+                ),
             ),
         ]
     )

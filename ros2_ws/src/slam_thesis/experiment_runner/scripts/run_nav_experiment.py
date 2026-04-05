@@ -308,7 +308,7 @@ def run_slam_evaluation(gt_file, est_file, output_dir, algorithm, goals_name, ve
 
 
 def run_navigation_experiment(algorithm, goals_file, output_dir, world='simple.sdf',
-                              timeout_per_goal=120.0, startup_delay=20.0, verbose=False):
+                              timeout_per_goal=120.0, startup_delay=25.0, verbose=False):
     """
     Run complete navigation experiment with SLAM accuracy recording.
 
@@ -500,7 +500,7 @@ def main():
         help='Timeout per goal in seconds (default: 120)',
     )
     parser.add_argument(
-        '--startup_delay', type=float, default=20.0,
+        '--startup_delay', type=float, default=25.0,
         help='Delay after launch before sending goals (default: 20)',
     )
     parser.add_argument(

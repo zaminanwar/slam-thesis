@@ -19,7 +19,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.time import Time
 from rclpy.duration import Duration
-from tf2_ros import Buffer, TransformListener, LookupException, ExtrapolationException
+from tf2_ros import Buffer, TransformListener, LookupException, ExtrapolationException, ConnectivityException
 
 
 class TrajectoryExporter(Node):
@@ -125,7 +125,7 @@ class TrajectoryExporter(Node):
             if self.samples_written % 100 == 0:
                 self.get_logger().info(f'Samples written: {self.samples_written}')
 
-        except (LookupException, ExtrapolationException) as e:
+        except (LookupException, ExtrapolationException, ConnectivityException) as e:
             self.samples_failed += 1
             # Only log occasionally to avoid spam
             if self.samples_failed <= 5 or self.samples_failed % 100 == 0:
