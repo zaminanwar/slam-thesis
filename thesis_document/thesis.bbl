@@ -1,0 +1,123 @@
+\begin{thebibliography}{16}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Agarwal et~al.(2010)Agarwal, Mierle, et~al.]{agarwal2010ceres}
+Sameer Agarwal, Keir Mierle, et~al.
+\newblock Ceres solver.
+\newblock 2010.
+
+\bibitem[Dellaert and Kaess(2017)]{dellaert2017factor}
+Frank Dellaert and Michael Kaess.
+\newblock Factor graphs for robot perception.
+\newblock \emph{Foundations and Trends in Robotics}, 6\penalty0
+  (1--2):\penalty0 1--139, 2017.
+\newblock \doi{10.1561/2300000043}.
+
+\bibitem[Fox(2003)]{fox2003kld}
+Dieter Fox.
+\newblock {KLD}-sampling: Adaptive particle filters.
+\newblock In \emph{Advances in Neural Information Processing Systems (NIPS)},
+  2003.
+
+\bibitem[Geiger et~al.(2013)Geiger, Lenz, Stiller, and
+  Urtasun]{geiger2013kitti}
+Andreas Geiger, Philip Lenz, Christoph Stiller, and Raquel Urtasun.
+\newblock Vision meets robotics: The {KITTI} dataset.
+\newblock \emph{International Journal of Robotics Research}, 32\penalty0
+  (11):\penalty0 1231--1237, 2013.
+\newblock \doi{10.1177/0278364913491297}.
+
+\bibitem[Grisetti et~al.(2010)Grisetti, K{\"u}mmerle, Stachniss, and
+  Burgard]{grisetti2010gmapping}
+Giorgio Grisetti, Rainer K{\"u}mmerle, Cyrill Stachniss, and Wolfram Burgard.
+\newblock A tutorial on graph-based {SLAM}.
+\newblock \emph{IEEE Intelligent Transportation Systems Magazine}, 2\penalty0
+  (4):\penalty0 31--43, 2010.
+\newblock \doi{10.1109/MITS.2010.939925}.
+
+\bibitem[Grupp(2017)]{grupp2017evo}
+Michael Grupp.
+\newblock evo: {Python} package for the evaluation of odometry and {SLAM}.
+\newblock \url{https://github.com/MichaelGrupp/evo}, 2017.
+
+\bibitem[Hess et~al.(2016)Hess, Kohler, Rapp, and Andor]{hess2016cartographer}
+Wolfgang Hess, Damon Kohler, Holger Rapp, and Daniel Andor.
+\newblock Real-time loop closure in {2D LIDAR SLAM}.
+\newblock In \emph{IEEE International Conference on Robotics and Automation
+  (ICRA)}, pages 1271--1278, 2016.
+\newblock \doi{10.1109/ICRA.2016.7487258}.
+
+\bibitem[Kohlbrecher et~al.(2011)Kohlbrecher, von Stryk, Meyer, and
+  Klingauf]{kohlbrecher2011hector}
+Stefan Kohlbrecher, Oskar von Stryk, Johannes Meyer, and Uwe Klingauf.
+\newblock A flexible and scalable {SLAM} system with full {3D} motion
+  estimation.
+\newblock In \emph{IEEE International Symposium on Safety, Security, and Rescue
+  Robotics (SSRR)}, pages 155--160, 2011.
+\newblock \doi{10.1109/SSRR.2011.6106777}.
+
+\bibitem[K{\"u}mmerle et~al.(2011)K{\"u}mmerle, Grisetti, Strasdat, Konolige,
+  and Burgard]{kummerle2011g2o}
+Rainer K{\"u}mmerle, Giorgio Grisetti, Hauke Strasdat, Kurt Konolige, and
+  Wolfram Burgard.
+\newblock g2o: A general framework for graph optimization.
+\newblock In \emph{IEEE International Conference on Robotics and Automation
+  (ICRA)}, pages 3607--3613, 2011.
+\newblock \doi{10.1109/ICRA.2011.5979949}.
+
+\bibitem[Macenski and Jambrecic(2021)]{macenski2021slam}
+Steven Macenski and Ivona Jambrecic.
+\newblock {SLAM Toolbox}: {SLAM} for the dynamic world.
+\newblock \emph{Journal of Open Source Software}, 6\penalty0 (61):\penalty0
+  2783, 2021.
+\newblock \doi{10.21105/joss.02783}.
+
+\bibitem[Macenski et~al.(2020)Macenski, Mart{\'\i}n, White, and
+  Gin{\'e}s~Clavero]{macenski2020nav2}
+Steven Macenski, Francisco Mart{\'\i}n, Ruffin White, and Jonatan
+  Gin{\'e}s~Clavero.
+\newblock The {Marathon 2}: A navigation system.
+\newblock \emph{arXiv preprint arXiv:2003.00368}, 2020.
+
+\bibitem[Sturm et~al.(2012)Sturm, Engelhard, Endres, Burgard, and
+  Cremers]{sturm2012benchmark}
+J{\"u}rgen Sturm, Nikolas Engelhard, Felix Endres, Wolfram Burgard, and Daniel
+  Cremers.
+\newblock A benchmark for the evaluation of {RGB-D SLAM} systems.
+\newblock In \emph{IEEE/RSJ International Conference on Intelligent Robots and
+  Systems (IROS)}, pages 573--580, 2012.
+\newblock \doi{10.1109/IROS.2012.6385773}.
+
+\bibitem[Thrun et~al.(2005)Thrun, Burgard, and Fox]{thrun2005probabilistic}
+Sebastian Thrun, Wolfram Burgard, and Dieter Fox.
+\newblock \emph{Probabilistic Robotics}.
+\newblock MIT Press, 2005.
+\newblock ISBN 0262201623.
+
+\bibitem[Umeyama(1991)]{umeyama1991}
+Shinji Umeyama.
+\newblock Least-squares estimation of transformation parameters between two
+  point patterns.
+\newblock \emph{IEEE Transactions on Pattern Analysis and Machine
+  Intelligence}, 13\penalty0 (4):\penalty0 376--380, 1991.
+\newblock \doi{10.1109/34.88573}.
+
+\bibitem[Wisth et~al.(2024)Wisth, Camurri, and Fallon]{wisth2024slamhive}
+David Wisth, Marco Camurri, and Maurice Fallon.
+\newblock Benchmarking {SLAM} algorithms in the cloud: The {SLAM Hive}
+  benchmarking suite.
+\newblock \emph{arXiv preprint arXiv:2406.17586}, 2024.
+
+\bibitem[Zhang and Scaramuzza(2018)]{zhang2018tutorial}
+Zichao Zhang and Davide Scaramuzza.
+\newblock A tutorial on quantitative trajectory evaluation for
+  visual(-inertial) odometry.
+\newblock In \emph{IEEE/RSJ International Conference on Intelligent Robots and
+  Systems (IROS)}, pages 7244--7251, 2018.
+\newblock \doi{10.1109/IROS.2018.8593941}.
+
+\end{thebibliography}

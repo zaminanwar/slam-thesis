@@ -1,0 +1,15 @@
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {4.1}{\ignorespaces System architecture showing the closed-loop data flow between simulation, SLAM, navigation, and evaluation subsystems.}}{27}{figure.caption.7}%
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Absolute Trajectory Error comparison across goal sets. Error bars indicate standard deviation across 3 runs. SLAM Toolbox achieves consistently lower ATE across all complexity levels.}}{34}{figure.caption.11}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces ATE accuracy ratio (Cartographer / SLAM Toolbox) across goal sets. The ratio decreases from 11.3$\times $ to 6.4$\times $ as trajectory complexity increases.}}{34}{figure.caption.12}%
+\contentsline {figure}{\numberline {5.3}{\ignorespaces Box plots of ATE RMSE distributions for each algorithm across the three goal sets. Individual data points are overlaid.}}{35}{figure.caption.14}%
+\contentsline {figure}{\numberline {5.4}{\ignorespaces Relative Pose Error comparison across goal sets.}}{36}{figure.caption.16}%
+\contentsline {figure}{\numberline {5.5}{\ignorespaces Navigation time comparison across goal sets.}}{37}{figure.caption.18}%
+\contentsline {figure}{\numberline {5.6}{\ignorespaces ATE RMSE as a function of trajectory length. Both algorithms show approximately linear error growth, but from substantially different baselines. Error bars indicate standard deviation.}}{38}{figure.caption.19}%
+\contentsline {figure}{\numberline {5.7}{\ignorespaces Individual run ATE RMSE values for all 18 experiments. Points are jittered horizontally for visibility.}}{39}{figure.caption.20}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }

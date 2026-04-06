@@ -14,10 +14,13 @@ Data flows in a closed loop: Gazebo produces simulated sensor data (laser scans,
 \fbox{\parbox{0.9\textwidth}{
 \centering
 \textbf{System Architecture}\\[6pt]
-\small
-Gazebo Harmonic $\xrightarrow{\texttt{/scan, /odom, /clock}}$ SLAM Algorithm $\xrightarrow{\texttt{map}\rightarrow\texttt{odom}~\text{TF}}$ Nav2 Stack $\xrightarrow{\texttt{/cmd\_vel}}$ Gazebo\\[4pt]
-Gazebo $\xrightarrow{\texttt{/model/rover/pose}}$ GT Publisher $\xrightarrow{\texttt{map\_gt}\rightarrow\texttt{base\_footprint\_gt}~\text{TF}}$ Trajectory Exporter $\rightarrow$ \texttt{gt.tum}\\[4pt]
-SLAM TF Tree $\rightarrow$ Trajectory Exporter $\rightarrow$ \texttt{est.tum} $\rightarrow$ \texttt{evo} $\rightarrow$ \texttt{metrics.json}
+\footnotesize
+\textbf{Navigation Loop:}\\
+Gazebo $\xrightarrow{\text{/scan, /odom}}$ SLAM $\xrightarrow{\text{map} \rightarrow \text{odom TF}}$ Nav2 $\xrightarrow{\text{/cmd\_vel}}$ Gazebo\\[6pt]
+\textbf{Ground Truth Path:}\\
+Gazebo $\xrightarrow{\text{/model/rover/pose}}$ GT Publisher $\xrightarrow{\text{map\_gt} \rightarrow \text{base\_footprint\_gt}}$ Exporter $\rightarrow$ gt.tum\\[6pt]
+\textbf{SLAM Evaluation Path:}\\
+SLAM TF $\rightarrow$ Exporter $\rightarrow$ est.tum $\rightarrow$ evo $\rightarrow$ metrics.json
 }}
 \caption{System architecture showing the closed-loop data flow between simulation, SLAM, navigation, and evaluation subsystems.}
 \label{fig:system_arch}
@@ -48,14 +51,14 @@ The experimental framework is organized into seven custom ROS~2 packages within 
 The transform (TF) frame architecture is a critical design element that required careful attention to avoid conflicts between the SLAM and ground truth coordinate systems. ROS~2's TF2 library enforces a tree structure where each frame has exactly one parent. The final frame architecture consists of two disjoint trees:
 
 \textbf{SLAM Tree (runtime localization):}
-\begin{verbatim}
-map -> odom -> base_footprint -> base_link -> laser_frame
-\end{verbatim}
+\begin{quote}
+\small\texttt{map $\rightarrow$ odom $\rightarrow$ base\_footprint $\rightarrow$ base\_link $\rightarrow$ laser\_frame}
+\end{quote}
 
 \textbf{Ground Truth Tree (evaluation only):}
-\begin{verbatim}
-map_gt -> base_footprint_gt
-\end{verbatim}
+\begin{quote}
+\small\texttt{map\_gt $\rightarrow$ base\_footprint\_gt}
+\end{quote}
 
 The SLAM tree is the standard ROS navigation frame convention: the SLAM algorithm publishes \texttt{map}$\rightarrow$\texttt{odom} (correcting for odometry drift), the Gazebo differential drive plugin publishes \texttt{odom}$\rightarrow$\texttt{base\_footprint} (raw odometry), and the robot state publisher provides the static transforms from \texttt{base\_footprint} through \texttt{base\_link} to \texttt{laser\_frame}.
 

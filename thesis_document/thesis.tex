@@ -6,7 +6,6 @@
 \usepackage{booktabs}
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage[hidelinks]{hyperref}
 \usepackage[round]{natbib}
 \usepackage{setspace}
 \usepackage{listings}
@@ -18,9 +17,18 @@
 \usepackage{multirow}
 \usepackage{enumitem}
 \usepackage{appendix}
+\usepackage{microtype}
+\usepackage[hyphens]{url}
+\usepackage[hidelinks]{hyperref}
 
 % Double spacing for thesis
 \doublespacing
+
+% Fix page numbering for front matter
+\pagenumbering{roman}
+
+% Allow slightly loose spacing to prevent overfull boxes
+\sloppy
 
 % Code listing style
 \lstset{
@@ -92,6 +100,7 @@ These findings suggest that current SLAM accuracy benchmarks may overemphasize t
 % ============================================================
 % CHAPTERS
 % ============================================================
+\pagenumbering{arabic}
 \input{chapters/ch1}
 \input{chapters/ch2}
 \input{chapters/ch3}
